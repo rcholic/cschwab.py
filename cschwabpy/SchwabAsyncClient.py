@@ -14,8 +14,8 @@ class SchwabAsyncClient(object):
         pass
 
     @staticmethod
-    async def run_tokens_wizard_async(
-        token_store: LocalTokenStore = LocalTokenStore(),
+    def run_tokens_wizard(
+        token_store: ITokenStore = LocalTokenStore(),
     ) -> None:
         """Manual steps to get tokens from Charles Schwab API."""
         from prompt_toolkit import prompt
@@ -23,25 +23,24 @@ class SchwabAsyncClient(object):
 
         app_client_id = prompt("Enter your app key> ").strip()
         app_secret = prompt("Enter your app secret> ").strip()
-        print(f"Your app_client_id is {app_client_id}")
+
         redirect_uri = prompt("Enter your redirect uri> ").strip()
         complete_auth_url = f"{SCHWAB_API_BASE_URL}/{SCHWAB_AUTH_PATH}?response_type=code&client_id={app_client_id}&redirect_uri={redirect_uri}"
         print(
-            f"Copy the following URL and visit it in your browser:\n {complete_auth_url}"
+            f"Copy and open the following URL in browser. Complete Login & Authorization:\n {complete_auth_url}"
         )
         auth_code_response_url = prompt(
             "Enter the entire authorization callback URL> "
         ).strip()
 
         auth_code = ""
-        redirect_uri = ""
         try:
-            auth_code_pattern = re.compile(r"code=(\w+)&?")
-            redirect_pattern = re.compile(r"redirect_uri=(http[s]*://\S+)&")
+            auth_code_pattern = re.compile(r"code=(.+)&?")
+            # redirect_pattern = re.compile(r"redirect_uri=(http[s]*://\S+)&")
             d = re.search(auth_code_pattern, auth_code_response_url)
             if d:
                 auth_code = d.group(1)
-                auth_code = url_parser.unquote(auth_code)
+                auth_code = url_parser.unquote(auth_code.split("&")[0])
             else:
                 raise Exception(
                     "authorization response url does not contain authorization code"
@@ -49,11 +48,6 @@ class SchwabAsyncClient(object):
 
             if len(auth_code) == 0:
                 raise Exception("authorization code is empty")
-
-            d2 = re.search(redirect_pattern, auth_code_response_url)
-            if d2:
-                redirect_uri = d2.group(1)
-                redirect_uri = url_parser.unquote(redirect_uri)
         except Exception as ex:
             raise Exception(
                 "Failed to get authorization code. Please try again. Exception: ", ex
@@ -62,8 +56,9 @@ class SchwabAsyncClient(object):
         key_sec = f"{app_client_id}:{app_secret}"
         key_sec_encoded = base64.b64encode(key_sec.encode("utf-8")).decode("utf-8")
         token_url = f"{SCHWAB_API_BASE_URL}/{SCHWAB_TOKEN_PATH}"
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
+
+        with httpx.Client() as client:
+            response = client.post(
                 url=token_url,
                 headers={
                     "Authorization": f"Basic {key_sec_encoded}",
@@ -84,3 +79,5 @@ class SchwabAsyncClient(object):
                 print(
                     f"Tokens saved successfully at path: {token_store.token_file_path}"
                 )
+            else:
+                print("Failed to get tokens. Please try again.")
