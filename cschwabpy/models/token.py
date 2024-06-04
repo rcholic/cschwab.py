@@ -1,4 +1,4 @@
-from cschwabpy.models import CharlieModelBase
+from cschwabpy.models import JSONSerializableBaseModel
 from pydantic import ConfigDict, Field
 from typing import Mapping, Any, Protocol, Optional
 import os
@@ -11,7 +11,7 @@ REFRESH_TOKEN_VALIDITY_SECONDS = 7 * 24 * 60 * 60  # 7 days
 UNIXTIME_FACTORY = time.time
 
 
-class Tokens(CharlieModelBase):
+class Tokens(JSONSerializableBaseModel):
     expires_in: int  # seconds till access__token expires
     token_type: str = "Bearer"
     scope: str

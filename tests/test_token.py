@@ -3,6 +3,7 @@
 import pytest
 import os
 import time
+from pathlib import Path
 from cschwabpy.models.token import Tokens, LocalTokenStore, ITokenStore
 
 
@@ -34,7 +35,9 @@ def test_tokens_serialization() -> None:
 
 def test_token_store() -> None:
     local_store = LocalTokenStore()
-    os.remove(local_store.token_file_path)  # clean up before test
+    if os.path.exists(Path(local_store.token_file_path)):
+        os.remove(local_store.token_file_path)  # clean up before test
+
     null_token = local_store.get_tokens()
     assert null_token is None
 

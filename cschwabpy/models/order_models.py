@@ -1,9 +1,9 @@
-from cschwabpy.models import CharlieModelBase
+from cschwabpy.models import JSONSerializableBaseModel
 
 
-class OptionOrder(CharlieModelBase):
+class OptionOrder(JSONSerializableBaseModel):
     ...
 
 
-class EquityOrder(CharlieModelBase):
+class EquityOrder(JSONSerializableBaseModel):
     ...
