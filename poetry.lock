@@ -158,24 +158,6 @@ http2 = ["h2 (>=3,<5)"]
 socks = ["socksio (>=1.0.0,<2.0.0)"]
 
 [[package]]
-name = "httpx-auth"
-version = "0.22.0"
-description = "Authentication for HTTPX"
-category = "main"
-optional = false
-python-versions = ">=3.9"
-files = [
-    {file = "httpx_auth-0.22.0-py3-none-any.whl", hash = "sha256:c60198e8160728f00e754b5181f4b9d1e4530260b94bbd09fd8abfe826b5be50"},
-    {file = "httpx_auth-0.22.0.tar.gz", hash = "sha256:5dc2d18cd3a0788015fd22714048e59f5eca6aa3051bfbd8d9dd0d2e6254c095"},
-]
-
-[package.dependencies]
-httpx = ">=0.27.0,<0.28.0"
-
-[package.extras]
-testing = ["pyjwt (>=2.0.0,<3.0.0)", "pytest-asyncio (>=0.23.0,<0.24.0)", "pytest-cov (>=4.0.0,<5.0.0)", "pytest-httpx (>=0.30.0,<0.31.0)", "time-machine (>=2.0.0,<3.0.0)"]
-
-[[package]]
 name = "identify"
 version = "2.5.36"
 description = "File identification library for Python"
@@ -748,4 +730,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11.5"
-content-hash = "b50d543214341c7aca1dc48eeb5f5a38c4cb6de5cd3a94bd8754aafe21d0ce5d"
+content-hash = "ed1dd40377a84489dea106c3c2916cef61d056346476257f4855d11090aee65a"

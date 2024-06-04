@@ -1,0 +1,8 @@
+httpx
+pytest
+pytest-asyncio
+pre-commit
+pydantic
+prompt-toolkit
+pandas
+numpy
