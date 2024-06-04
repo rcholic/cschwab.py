@@ -1,4 +1,4 @@
-from cschwabpy.models.token import Tokens, ITokenStore
+from cschwabpy.models.token import Tokens, ITokenStore, LocalTokenStore
 from typing import Optional, List, Mapping
 from cschwabpy.costants import SCHWAB_API_BASE_URL, SCHWAB_AUTH_PATH, SCHWAB_TOKEN_PATH
 
@@ -14,7 +14,9 @@ class SchwabAsyncClient(object):
         pass
 
     @staticmethod
-    async def run_tokens_wizard_async(token_store: ITokenStore) -> None:
+    async def run_tokens_wizard_async(
+        token_store: LocalTokenStore = LocalTokenStore(),
+    ) -> None:
         """Manual steps to get tokens from Charles Schwab API."""
         from prompt_toolkit import prompt
         import urllib.parse as url_parser
@@ -77,4 +79,6 @@ class SchwabAsyncClient(object):
             if response.status_code == 200:
                 tokens = Tokens(**response.json())
                 token_store.save_tokens(tokens)
-                print("Tokens saved successfully")
+                print(
+                    f"Tokens saved successfully at path: {token_store.token_file_path}"
+                )
