@@ -22,6 +22,12 @@ def test_tokens_serialization() -> None:
     assert tokens_json is not None
     assert "token_type" in tokens_json
 
+    restored_tokens = Tokens(**tokens_json)
+    assert restored_tokens is not None
+    assert restored_tokens.access_token == tokens1.access_token
+    assert restored_tokens.refresh_token == tokens1.refresh_token
+    assert restored_tokens.id_token == tokens1.id_token
+
 
 def test_token_store() -> None:
     local_store = LocalTokenStore()
