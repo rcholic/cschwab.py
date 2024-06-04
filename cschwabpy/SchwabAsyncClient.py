@@ -1,7 +1,7 @@
 from cschwabpy.models.token import Tokens, ITokenStore, LocalTokenStore
 from typing import Optional, List, Mapping
 from cschwabpy.costants import SCHWAB_API_BASE_URL, SCHWAB_AUTH_PATH, SCHWAB_TOKEN_PATH
-
+import time
 import httpx
 import re
 import base64
@@ -77,7 +77,9 @@ class SchwabAsyncClient(object):
             )
 
             if response.status_code == 200:
-                tokens = Tokens(**response.json())
+                json_res = response.json()
+                json_res["created_timestamp"] = time.time()
+                tokens = Tokens(**json_res)
                 token_store.save_tokens(tokens)
                 print(
                     f"Tokens saved successfully at path: {token_store.token_file_path}"

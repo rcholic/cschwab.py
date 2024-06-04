@@ -2,6 +2,7 @@
 
 import pytest
 import os
+import time
 from cschwabpy.models.token import Tokens, LocalTokenStore, ITokenStore
 
 
@@ -13,6 +14,7 @@ def mock_tokens() -> Tokens:
         refresh_token="refresh_token",
         access_token="access_token",
         id_token="id_token",
+        created_timestamp=time.time(),
     )
 
 
@@ -27,6 +29,8 @@ def test_tokens_serialization() -> None:
     assert restored_tokens.access_token == tokens1.access_token
     assert restored_tokens.refresh_token == tokens1.refresh_token
     assert restored_tokens.id_token == tokens1.id_token
+    assert restored_tokens.is_access_token_valid
+    assert restored_tokens.is_refresh_token_valid
 
 
 def test_token_store() -> None:

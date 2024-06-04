@@ -2,16 +2,28 @@ from cschwabpy.models import CharlieModelBase
 from typing import Mapping, Any, Protocol, Optional
 import os
 import json
+import time
 from pathlib import Path
+
+REFRESH_TOKEN_VALIDITY_SECONDS = 7 * 24 * 60 * 60  # 7 days
 
 
 class Tokens(CharlieModelBase):
-    expires_in: int
+    expires_in: int  # seconds till access__token expires
     token_type: str = "Bearer"
     scope: str
     refresh_token: str
     access_token: str
     id_token: Optional[str] = None
+    created_timestamp: float
+
+    @property
+    def is_access_token_valid(self) -> bool:
+        return time.time() - self.created_timestamp < self.expires_in
+
+    @property
+    def is_refresh_token_valid(self) -> bool:
+        return time.time() - self.created_timestamp < REFRESH_TOKEN_VALIDITY_SECONDS
 
 
 class ITokenStore(Protocol):
