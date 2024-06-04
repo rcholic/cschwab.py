@@ -11,10 +11,19 @@ class SchwabAsyncClient(object):
     def __init__(
         self, token_store: ITokenStore, tokens: Optional[Tokens] = None
     ) -> None:
-        pass
+        self.token_store = token_store
+
+        if (
+            tokens is not None
+            and tokens.is_access_token_valid
+            and tokens.is_refresh_token_valid
+        ):
+            token_store.save_tokens(tokens)
+        else:
+            tokens = token_store.get_tokens()
 
     @staticmethod
-    def run_tokens_wizard(
+    def get_tokens_manually(
         token_store: ITokenStore = LocalTokenStore(),
     ) -> None:
         """Manual steps to get tokens from Charles Schwab API."""

@@ -18,6 +18,7 @@ class Tokens(JSONSerializableBaseModel):
     refresh_token: str
     access_token: str
     id_token: Optional[str] = None
+    # rt_created_timestamp: float = Field(default_factory=UNIXTIME_FACTORY)
     created_timestamp: float = Field(default_factory=UNIXTIME_FACTORY)
 
     @property
@@ -30,6 +31,11 @@ class Tokens(JSONSerializableBaseModel):
 
 
 class ITokenStore(Protocol):
+    @property
+    def token_output_path(self) -> str:
+        """Path for outputting tokens."""
+        return ""
+
     def get_tokens(self) -> Optional[Tokens]:
         pass
 
@@ -50,6 +56,10 @@ class LocalTokenStore(ITokenStore):
 
         if not os.path.exists(self.token_file_path.parent):
             os.makedirs(self.token_file_path.parent)
+
+    @property
+    def token_output_path(self) -> str:
+        return str(self.token_file_path)
 
     def get_tokens(self) -> Optional[Tokens]:
         try:

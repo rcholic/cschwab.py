@@ -35,16 +35,16 @@ def test_tokens_serialization() -> None:
 
 def test_token_store() -> None:
     local_store = LocalTokenStore()
-    if os.path.exists(Path(local_store.token_file_path)):
-        os.remove(local_store.token_file_path)  # clean up before test
+    if os.path.exists(Path(local_store.token_output_path)):
+        os.remove(local_store.token_output_path)  # clean up before test
 
     null_token = local_store.get_tokens()
     assert null_token is None
 
     mocked_token1 = mock_tokens()
     local_store.save_tokens(mocked_token1)
-    assert local_store.token_file_path is not None
-    assert os.path.exists(local_store.token_file_path)
+    assert local_store.token_output_path is not None
+    assert os.path.exists(local_store.token_output_path)
 
     retrieved_token = local_store.get_tokens()
     assert retrieved_token is not None
@@ -52,4 +52,4 @@ def test_token_store() -> None:
     assert retrieved_token.refresh_token == mocked_token1.refresh_token
     assert retrieved_token.id_token == mocked_token1.id_token
     assert retrieved_token.scope == mocked_token1.scope
-    os.remove(local_store.token_file_path)  # clean up after tests
+    os.remove(local_store.token_output_path)  # clean up after tests
