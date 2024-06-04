@@ -15,10 +15,13 @@ class SchwabAsyncClient(object):
         app_secret: str,
         token_store: ITokenStore = LocalTokenStore(),
         tokens: Optional[Tokens] = None,
+        http_client: Optional[httpx.AsyncClient] = None,
     ) -> None:
         self.__client_id = app_client_id
         self.__client_secret = app_secret
         self.__token_store = token_store
+        self.__client = http_client
+        self.__keep_client_alive = http_client is not None
         if (
             tokens is not None
             and tokens.is_access_token_valid
@@ -33,37 +36,45 @@ class SchwabAsyncClient(object):
         return f"{SCHWAB_API_BASE_URL}/{SCHWAB_TOKEN_PATH}"
 
     async def _ensure_valid_access_token(self, force_refresh: bool = False) -> bool:
+        if self.__tokens is None:
+            raise Exception(
+                "Tokens are not available. Please use get_tokens_manually() to get tokens first."
+            )
+
         if self.__tokens.is_access_token_valid and not force_refresh:
             return True
 
+        client = httpx.AsyncClient() if self.__client is None else self.__client
         try:
             key_sec_encoded = self.__encode_app_key_secret()
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    url=self.token_url,
-                    headers={
-                        "Authorization": f"Basic {key_sec_encoded}",
-                        "Content-Type": "application/x-www-form-urlencoded",
-                    },
-                    data={
-                        "grant_type": "refresh_token",
-                        "refresh_token": self.__tokens.refresh_token,
-                    },
-                )
+            response = await client.post(
+                url=self.token_url,
+                headers={
+                    "Authorization": f"Basic {key_sec_encoded}",
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                data={
+                    "grant_type": "refresh_token",
+                    "refresh_token": self.__tokens.refresh_token,
+                },
+            )
 
-                if response.status_code == 200:
-                    json_res = response.json()
-                    tokens = Tokens(**json_res)
-                    self.__token_store.save_tokens(tokens)
-                    return True
-                else:
-                    raise Exception(
-                        "Status for refreshing access token is not successful. Status: ",
-                        response.status_code,
-                    )
+            if response.status_code == 200:
+                json_res = response.json()
+                tokens = Tokens(**json_res)
+                self.__token_store.save_tokens(tokens)
+                return True
+            else:
+                raise Exception(
+                    "Status for refreshing access token is not successful. Status: ",
+                    response.status_code,
+                )
         except Exception as ex:
             print("Failed to refresh access token. Please try again. exception: ", ex)
             return False
+        finally:
+            if not self.__keep_client_alive:
+                await client.aclose()
 
     def __encode_app_key_secret(self) -> str:
         key_sec = f"{self.__client_id}:{self.__client_secret}"
