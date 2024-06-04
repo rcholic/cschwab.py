@@ -14,7 +14,6 @@ def mock_tokens() -> Tokens:
         refresh_token="refresh_token",
         access_token="access_token",
         id_token="id_token",
-        created_timestamp=time.time(),
     )
 
 
@@ -35,6 +34,7 @@ def test_tokens_serialization() -> None:
 
 def test_token_store() -> None:
     local_store = LocalTokenStore()
+    os.remove(local_store.token_file_path)  # clean up before test
     null_token = local_store.get_tokens()
     assert null_token is None
 

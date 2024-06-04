@@ -1,4 +1,5 @@
 from cschwabpy.models import CharlieModelBase
+from pydantic import ConfigDict, Field
 from typing import Mapping, Any, Protocol, Optional
 import os
 import json
@@ -6,6 +7,8 @@ import time
 from pathlib import Path
 
 REFRESH_TOKEN_VALIDITY_SECONDS = 7 * 24 * 60 * 60  # 7 days
+
+UNIXTIME_FACTORY = time.time
 
 
 class Tokens(CharlieModelBase):
@@ -15,7 +18,7 @@ class Tokens(CharlieModelBase):
     refresh_token: str
     access_token: str
     id_token: Optional[str] = None
-    created_timestamp: float
+    created_timestamp: float = Field(default_factory=UNIXTIME_FACTORY)
 
     @property
     def is_access_token_valid(self) -> bool:
