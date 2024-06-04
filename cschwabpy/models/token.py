@@ -29,6 +29,11 @@ class Tokens(JSONSerializableBaseModel):
     def is_refresh_token_valid(self) -> bool:
         return time.time() - self.created_timestamp < REFRESH_TOKEN_VALIDITY_SECONDS
 
+    @property
+    def all_tokens_invalid(self) -> bool:
+        """Whether both RT and AT are invalid."""
+        return not self.is_access_token_valid and not self.is_refresh_token_valid
+
 
 class ITokenStore(Protocol):
     @property

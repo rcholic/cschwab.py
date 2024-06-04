@@ -9,18 +9,34 @@ import base64
 
 class SchwabAsyncClient(object):
     def __init__(
-        self, token_store: ITokenStore, tokens: Optional[Tokens] = None
+        self,
+        token_store: ITokenStore = LocalTokenStore(),
+        tokens: Optional[Tokens] = None,
     ) -> None:
-        self.token_store = token_store
 
+        self.__token_store = token_store
         if (
             tokens is not None
             and tokens.is_access_token_valid
             and tokens.is_refresh_token_valid
         ):
             token_store.save_tokens(tokens)
+            self.__tokens = tokens
         else:
             tokens = token_store.get_tokens()
+            if tokens is None or tokens.all_tokens_invalid:
+                raise Exception(
+                    "Tokens are invalid or expired. Please get new tokens with SchwabAsyncClient.get_tokens_manually() method."
+                )
+
+            self.__tokens = tokens
+
+    async def _ensure_valid_access_token(self) -> bool:
+        if self.__tokens.is_access_token_valid:
+            return True
+
+        # refresh access token
+        # doc: https://developer.schwab.com/products/trader-api--individual/details/documentation/Retail%20Trader%20API%20Production
 
     @staticmethod
     def get_tokens_manually(
