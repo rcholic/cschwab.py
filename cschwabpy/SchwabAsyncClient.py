@@ -1,6 +1,12 @@
 from cschwabpy.models.token import Tokens, ITokenStore, LocalTokenStore
+from cschwabpy.models import OptionChainQueryFilter, OptionContractType
 from typing import Optional, List, Mapping
-from cschwabpy.costants import SCHWAB_API_BASE_URL, SCHWAB_AUTH_PATH, SCHWAB_TOKEN_PATH
+from cschwabpy.costants import (
+    SCHWAB_API_BASE_URL,
+    SCHWAB_MARKET_DATA_API_BASE_URL,
+    SCHWAB_AUTH_PATH,
+    SCHWAB_TOKEN_PATH,
+)
 import time
 import httpx
 import re
@@ -82,6 +88,40 @@ class SchwabAsyncClient(object):
 
         # refresh access token
         # doc: https://developer.schwab.com/products/trader-api--individual/details/documentation/Retail%20Trader%20API%20Production
+
+    def __auth_header(self) -> Mapping[str, str]:
+        return {
+            "Authorization": f"{self.__tokens.token_type} {self.__tokens.access_token}",
+            "Accept": "application/json",
+        }
+
+    async def download_option_chain(
+        self,
+        underlying_symbol: str,
+        from_date: str,
+        to_date: str,
+        contract_type: str = "ALL",
+    ) -> None:
+        query_filter = OptionChainQueryFilter(
+            symbol=underlying_symbol,
+            contractType=OptionContractType(contract_type),
+            fromDate=from_date,
+            toDate=to_date,
+        )
+        target_url = (
+            f"{SCHWAB_MARKET_DATA_API_BASE_URL}/chains?{query_filter.to_query_params()}"
+        )
+        print("target_url: ", target_url)
+        print("auth header: ", self.__auth_header())
+        client = httpx.AsyncClient() if self.__client is None else self.__client
+        try:
+            response = await client.get(
+                url=target_url, params={}, headers=self.__auth_header()
+            )
+            json_res = response.json()
+        finally:
+            if not self.__keep_client_alive:
+                await client.aclose()
 
     def get_tokens_manually(
         self,
