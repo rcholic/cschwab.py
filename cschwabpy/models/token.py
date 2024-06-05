@@ -1,4 +1,5 @@
-from cschwabpy.models import CharlieModelBase
+from cschwabpy.models import JSONSerializableBaseModel
+from pydantic import ConfigDict, Field
 from typing import Mapping, Any, Protocol, Optional
 import os
 import json
@@ -7,15 +8,18 @@ from pathlib import Path
 
 REFRESH_TOKEN_VALIDITY_SECONDS = 7 * 24 * 60 * 60  # 7 days
 
+UNIXTIME_FACTORY = time.time
 
-class Tokens(CharlieModelBase):
+
+class Tokens(JSONSerializableBaseModel):
     expires_in: int  # seconds till access__token expires
     token_type: str = "Bearer"
     scope: str
     refresh_token: str
     access_token: str
     id_token: Optional[str] = None
-    created_timestamp: float
+    # rt_created_timestamp: float = Field(default_factory=UNIXTIME_FACTORY)
+    created_timestamp: float = Field(default_factory=UNIXTIME_FACTORY)
 
     @property
     def is_access_token_valid(self) -> bool:
@@ -25,8 +29,18 @@ class Tokens(CharlieModelBase):
     def is_refresh_token_valid(self) -> bool:
         return time.time() - self.created_timestamp < REFRESH_TOKEN_VALIDITY_SECONDS
 
+    @property
+    def all_tokens_invalid(self) -> bool:
+        """Whether both RT and AT are invalid."""
+        return not self.is_access_token_valid and not self.is_refresh_token_valid
+
 
 class ITokenStore(Protocol):
+    @property
+    def token_output_path(self) -> str:
+        """Path for outputting tokens."""
+        return ""
+
     def get_tokens(self) -> Optional[Tokens]:
         pass
 
@@ -47,6 +61,10 @@ class LocalTokenStore(ITokenStore):
 
         if not os.path.exists(self.token_file_path.parent):
             os.makedirs(self.token_file_path.parent)
+
+    @property
+    def token_output_path(self) -> str:
+        return str(self.token_file_path)
 
     def get_tokens(self) -> Optional[Tokens]:
         try:

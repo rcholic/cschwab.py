@@ -6,3 +6,5 @@ pydantic
 prompt-toolkit
 pandas
 numpy
+pytz
+arrow
