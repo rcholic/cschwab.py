@@ -47,6 +47,16 @@ schwab_client.get_tokens_manually()
 from_date = 2024-07-01
 to_date = 2024-07-01
 ticker = '$SPX'
-asyncio.run(schwab_client.download_option_chain(ticker, from_date, to_date))
+asyncio.run(opt_chain_result = schwab_client.download_option_chain(ticker, from_date, to_date))
+
+# get call-put dataframe pairs by expiration
+opt_df_pairs = opt_chain_result.to_dataframe_pairs_by_expiration()
+
+for df in opt_df_pairs:
+    print(df.expiration)
+    print(f"call dataframe size: {df.call_df.shape}. expiration: {df.expiration}")
+    print(f"put dataframe size: {df.put_df.shape}. expiration: {df.expiration}")
+    print(df.call_df.head(5))
+    print(df.put_df.head(5))
 
 ```
