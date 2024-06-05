@@ -1,5 +1,5 @@
 from cschwabpy.models.token import Tokens, ITokenStore, LocalTokenStore
-from cschwabpy.models import OptionChainQueryFilter, OptionContractType
+from cschwabpy.models import OptionChainQueryFilter, OptionContractType, OptionChain
 from typing import Optional, List, Mapping
 from cschwabpy.costants import (
     SCHWAB_API_BASE_URL,
@@ -100,7 +100,9 @@ class SchwabAsyncClient(object):
         from_date: str,
         to_date: str,
         contract_type: str = "ALL",
-    ) -> None:
+    ) -> OptionChain:
+        await self._ensure_valid_access_token()
+
         query_filter = OptionChainQueryFilter(
             symbol=underlying_symbol,
             contractType=OptionContractType(contract_type),
@@ -110,14 +112,14 @@ class SchwabAsyncClient(object):
         target_url = (
             f"{SCHWAB_MARKET_DATA_API_BASE_URL}/chains?{query_filter.to_query_params()}"
         )
-        print("target_url: ", target_url)
-        print("auth header: ", self.__auth_header())
+
         client = httpx.AsyncClient() if self.__client is None else self.__client
         try:
             response = await client.get(
                 url=target_url, params={}, headers=self.__auth_header()
             )
             json_res = response.json()
+            return OptionChain(**json_res)
         finally:
             if not self.__keep_client_alive:
                 await client.aclose()

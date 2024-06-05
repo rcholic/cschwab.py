@@ -1,8 +1,29 @@
 """models folder."""
+from datetime import datetime
+from dataclasses import dataclass
 from pydantic import BaseModel, ConfigDict, Field
 from typing import MutableMapping, Mapping, MutableSet, Any, List, Optional
 from enum import Enum
+import cschwabpy.util as util
 import pandas as pd
+
+OptionChain_Headers = [
+    "underlying_price",
+    "strike",
+    "symbol",
+    "last_price",
+    "open_interest",
+    "ask",
+    "bid",
+    "expiration_date",
+    "bid_date",
+    "volume",
+    "updated_at",
+    "gamma",
+    "delta",
+    "vega",
+    "volatility",
+]
 
 
 class JSONSerializableBaseModel(BaseModel):
@@ -128,13 +149,32 @@ class OptionContract(JSONSerializableBaseModel):
     lastTradingDay: Optional[int] = None
     multiplier: Optional[float] = None
     settlementType: str  # AM, PM
-    isIndex: bool
+    isIndex: Optional[bool] = None
     percentChange: Optional[float] = None
     markChange: Optional[float] = None
     markPercentChange: Optional[float] = None
     model_config = ConfigDict(
         validate_assignment=False, use_enum_values=True, populate_by_name=True
     )
+
+    def to_dataframe_row(self) -> List[Any]:
+        result: List[Any] = [
+            self.strikePrice,
+            self.symbol.strip().replace(" ", ""),
+            self.lastPrice,
+            self.openInterest,
+            self.askPrice,
+            self.bidPrice,
+            self.expirationDate,
+            util.ts_to_date_string(self.quoteTimeInLong),
+            self.totalVolume,
+            util.ts_to_date_string(self.quoteTimeInLong),
+            self.gamma,
+            self.delta,
+            self.vega,
+            self.volatility,
+        ]
+        return result
 
 
 class Underlying(JSONSerializableBaseModel):
@@ -158,6 +198,18 @@ class Underlying(JSONSerializableBaseModel):
     totalVolume: Optional[int] = None
     tradeTime: Optional[int] = None
 
+    @property
+    def quote_time(self) -> datetime:
+        return util.ts_to_datetime(self.quoteTime)
+
+
+@dataclass
+class OptionChainDataFrames:
+    expiration: str
+    underlying_symbol: str
+    call_df: pd.DataFrame
+    put_df: pd.DataFrame
+
 
 class OptionChain(JSONSerializableBaseModel):
     symbol: str
@@ -178,3 +230,49 @@ class OptionChain(JSONSerializableBaseModel):
     callExpDateMap: Mapping[
         str, Mapping[str, List[OptionContract]]
     ]  # key: expiration:27 value:[strike: OptionContract]
+
+    def to_dataframe_pairs_by_expiration(self) -> List[OptionChainDataFrames]:
+        """
+        List of OptionChainDataFrames by expiration.
+        Each OptionChainDataFrames object contains call and put chain in dataframe format.
+        """
+        results: List[OptionChainDataFrames] = []
+        call_map = self.break_down_option_map(self.callExpDateMap)
+        put_map = self.break_down_option_map(self.putExpDateMap)
+        for expiration in call_map.keys():
+            call_df = call_map[expiration]
+            put_df = put_map[expiration]
+
+            cur_df_pair = OptionChainDataFrames(
+                expiration=expiration,
+                underlying_symbol=self.symbol,
+                call_df=call_df,
+                put_df=put_df,
+            )
+            results.append(cur_df_pair)
+
+        return results
+
+    def break_down_option_map(
+        self, optionExpMap: Mapping[str, Mapping[str, List[OptionContract]]]
+    ) -> Mapping[str, pd.DataFrame]:
+        result: MutableMapping[str, pd.DataFrame] = {}
+        for exp_date, strike_map in optionExpMap.items():
+            expiration = exp_date.split(":")[0]
+            if expiration not in result:
+                result[expiration] = {}
+
+            all_rows = []
+            strike_df = pd.DataFrame()
+            for strike_str, option_contracts in strike_map.items():
+                strike = float(strike_str)
+                for option_contract in option_contracts:
+                    row = option_contract.to_dataframe_row()
+                    row.insert(0, self.underlying.mark)
+                    all_rows.append(row)
+
+                strike_df = pd.DataFrame(all_rows)
+                strike_df.columns = OptionChain_Headers
+            result[expiration] = strike_df
+
+        return result

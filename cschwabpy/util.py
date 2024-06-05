@@ -1,5 +1,6 @@
 from datetime import datetime
 import pytz
+from typing import Optional
 
 eastern_tz: pytz.BaseTzInfo = pytz.timezone("US/Eastern")
 YMD_FMT = "%Y-%m-%d"
@@ -17,10 +18,22 @@ def now_unix_ts() -> float:
     return now().timestamp()
 
 
-def ts_to_datetime(ts: float, tz: pytz.BaseTzInfo = eastern_tz) -> datetime:
+def ts_to_datetime(
+    ts: Optional[float] = None, tz: pytz.BaseTzInfo = eastern_tz
+) -> Optional[datetime]:
+    if ts is None:
+        return None
     while ts > 1e10:
         ts = ts / 1000
     return datetime.fromtimestamp(ts, tz)
+
+
+def ts_to_date_string(
+    ts: Optional[float] = None, tz: pytz.BaseTzInfo = eastern_tz
+) -> Optional[str]:
+    if ts is None:
+        return None
+    return ts_to_datetime(ts, tz).strftime(YMD_FMT)
 
 
 def today_str(tz: pytz.BaseTzInfo = eastern_tz) -> str:  # type: ignore

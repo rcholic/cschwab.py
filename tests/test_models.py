@@ -27,8 +27,11 @@ def test_option_chain_parsing() -> None:
     assert opt_chain_result is not None
     assert opt_chain_result.status == "SUCCESS"
 
-    # for key, value in opt_chain_result.callExpDateMap.items():
-    #     # Do something with key and value
-    #     print(key[:10])
-    #     print(value)#
-    #     print("----------------")
+    opt_df_pairs = opt_chain_result.to_dataframe_pairs_by_expiration()
+    assert opt_df_pairs is not None
+    for df in opt_df_pairs:
+        print(df.expiration)
+        print(f"call dataframe size: {df.call_df.shape}. expiration: {df.expiration}")
+        print(f"put dataframe size: {df.put_df.shape}. expiration: {df.expiration}")
+        print(df.call_df.head(5))
+        print(df.put_df.head(5))
