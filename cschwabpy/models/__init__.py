@@ -79,7 +79,7 @@ class OptionChainQueryFilter(QueryFilterBase):
     symbol: str
     contractType: OptionContractType = OptionContractType.ALL
     strikeCount: int = (
-        25  # the number of strikes to  return above or below the at-the-money price
+        40  # the number of strikes to  return above or below the at-the-money price
     )
     includeUnderlyingQuote: bool = True
     strategy: OptionContractStrategy = OptionContractStrategy.ANALYTICAL

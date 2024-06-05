@@ -10,7 +10,6 @@ from cschwabpy.costants import (
 import time
 import httpx
 import re
-import os
 import base64
 
 

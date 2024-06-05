@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Tony Wang <ivytony@gmail.com>"]
 readme = "README.md"
-packages = [{include = "cschwab"}]
+packages = [{include = "cschwabpy"}]
 
 [tool.poetry.dependencies]
 python = "^3.10.13"
