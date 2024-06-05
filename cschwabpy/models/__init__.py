@@ -11,8 +11,8 @@ OptionChain_Headers = [
     "underlying_price",
     "strike",
     "symbol",
-    "last_price",
-    "open_interest",
+    "lastPrice",
+    "openInterest",
     "ask",
     "bid",
     "expiration_date",
@@ -199,7 +199,7 @@ class Underlying(JSONSerializableBaseModel):
     tradeTime: Optional[int] = None
 
     @property
-    def quote_time(self) -> datetime:
+    def quote_time(self) -> Optional[datetime]:
         return util.ts_to_datetime(self.quoteTime)
 
 
