@@ -72,7 +72,7 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
             tokens=mocked_token,
             http_client=client,
         )
-        opt_chain_result = await cschwab_client.download_option_chain(
+        opt_chain_result = await cschwab_client.download_option_chain_async(
             underlying_symbol=symbol, from_date="2025-01-03", to_date="2025-01-03"
         )
         assert opt_chain_result is not None
@@ -88,3 +88,36 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
             print(f"put dataframe size: {df.put_df.shape}. expiration: {df.expiration}")
             print(df.call_df.head(5))
             print(df.put_df.head(5))
+
+
+@pytest.mark.asyncio
+async def test_get_option_expirations(httpx_mock: HTTPXMock):
+    mock_option_chain_resp = get_mock_response()
+    mocked_token = mock_tokens()
+    token_store = LocalTokenStore()
+    if os.path.exists(Path(token_store.token_output_path)):
+        os.remove(token_store.token_output_path)  # clean up before test
+
+    mock_response = {
+        **mock_option_chain_resp["option_expirations_list"],
+        **(mocked_token.to_json()),
+    }
+    symbol = "$SPX"
+    httpx_mock.add_response(json=mock_response)
+    async with httpx.AsyncClient() as client:
+        cschwab_client = SchwabAsyncClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            tokens=mocked_token,
+            http_client=client,
+        )
+        opt_expirations_list = await cschwab_client.get_option_expirations_async(
+            underlying_symbol=symbol
+        )
+        assert opt_expirations_list is not None
+        assert len(opt_expirations_list) > 0
+        assert opt_expirations_list[0].expirationDate == "2022-01-07"
+        assert opt_expirations_list[0].daysToExpiration == 2
+        assert opt_expirations_list[0].expirationType == "W"
+        assert opt_expirations_list[0].standard

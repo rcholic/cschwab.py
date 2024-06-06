@@ -1,5 +1,11 @@
 from cschwabpy.models.token import Tokens, ITokenStore, LocalTokenStore
-from cschwabpy.models import OptionChainQueryFilter, OptionContractType, OptionChain
+from cschwabpy.models import (
+    OptionChainQueryFilter,
+    OptionContractType,
+    OptionChain,
+    OptionExpiration,
+    OptionExpirationChainResponse,
+)
 from typing import Optional, List, Mapping
 from cschwabpy.costants import (
     SCHWAB_API_BASE_URL,
@@ -94,7 +100,24 @@ class SchwabAsyncClient(object):
             "Accept": "application/json",
         }
 
-    async def download_option_chain(
+    async def get_option_expirations_async(
+        self, underlying_symbol: str
+    ) -> List[OptionExpiration]:
+        await self._ensure_valid_access_token()
+        target_url = f"{SCHWAB_MARKET_DATA_API_BASE_URL}/expirationchain?symbol={underlying_symbol}"
+        client = httpx.AsyncClient() if self.__client is None else self.__client
+        try:
+            response = await client.get(
+                url=target_url, params={}, headers=self.__auth_header()
+            )
+            json_res = response.json()
+            expiration_resp = OptionExpirationChainResponse(**json_res)
+            return expiration_resp.expirationList
+        finally:
+            if not self.__keep_client_alive:
+                await client.aclose()
+
+    async def download_option_chain_async(
         self,
         underlying_symbol: str,
         from_date: str,

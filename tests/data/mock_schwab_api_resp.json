@@ -1,4 +1,61 @@
 {
+    "option_expirations_list": {
+      "expirationList": [
+        {
+          "expirationDate": "2022-01-07",
+          "daysToExpiration": 2,
+          "expirationType": "W",
+          "standard": true
+        },
+        {
+          "expirationDate": "2022-01-14",
+          "daysToExpiration": 9,
+          "expirationType": "W",
+          "standard": true
+        },
+        {
+          "expirationDate": "2022-01-21",
+          "daysToExpiration": 16,
+          "expirationType": "S",
+          "standard": true
+        },
+        {
+          "expirationDate": "2022-01-28",
+          "daysToExpiration": 23,
+          "expirationType": "W",
+          "standard": true
+        },
+        {
+          "expirationDate": "2022-02-04",
+          "daysToExpiration": 30,
+          "expirationType": "W",
+          "standard": true
+        },
+        {
+          "expirationDate": "2022-02-11",
+          "daysToExpiration": 37,
+          "expirationType": "W",
+          "standard": true
+        },
+        {
+          "expirationDate": "2022-02-18",
+          "daysToExpiration": 44,
+          "expirationType": "S",
+          "standard": true
+        },
+        {
+          "expirationDate": "2022-03-18",
+          "daysToExpiration": 72,
+          "expirationType": "S",
+          "standard": true
+        },
+        {
+          "expirationDate": "2022-04-14",
+          "daysToExpiration": 99,
+          "expirationType": "S",
+          "standard": true
+        }]
+      },
     "option_chain_resp": {
         "symbol":"$SPX",
         "status":"SUCCESS",

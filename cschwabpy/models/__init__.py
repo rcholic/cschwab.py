@@ -63,6 +63,17 @@ class QueryFilterBase(JSONSerializableBaseModel):
         return "&".join([f"{k}={v}" for k, v in query_dict.items() if v is not None])
 
 
+class OptionExpiration(JSONSerializableBaseModel):
+    expirationDate: str
+    daysToExpiration: Optional[int] = None
+    expirationType: Optional[str] = None
+    standard: Optional[bool] = None
+
+
+class OptionExpirationChainResponse(JSONSerializableBaseModel):
+    expirationList: List[OptionExpiration] = []
+
+
 class OptionContractType(str, Enum):
     """Option contract type."""
 

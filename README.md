@@ -45,11 +45,15 @@ schwab_client.get_tokens_manually()
 # now you should have access token & refresh token downloaded to your device
 
 #----------------
+ticker = '$SPX'
+# get option expirations:
+expiration_list = await schwab_client.get_option_expirations_async(underlying_symbol = ticker)
+
 # download SPX option chains
 from_date = 2024-07-01
 to_date = 2024-07-01
-ticker = '$SPX'
-asyncio.run(opt_chain_result = schwab_client.download_option_chain(ticker, from_date, to_date))
+
+opt_chain_result = await schwab_client.download_option_chain_async(ticker, from_date, to_date)
 
 # get call-put dataframe pairs by expiration
 opt_df_pairs = opt_chain_result.to_dataframe_pairs_by_expiration()
