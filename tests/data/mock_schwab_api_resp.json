@@ -1,5 +1,15 @@
 {
-    "option_expirations_list": {
+   "account_numbers": [
+      {
+         "accountNumber": "123456789",
+         "hashValue": "hash1"
+      },
+      {
+         "accountNumber": "987654321",
+         "hashValue": "hash2"
+      }
+   ],
+   "option_expirations_list": {
       "expirationList": [
         {
           "expirationDate": "2022-01-07",
