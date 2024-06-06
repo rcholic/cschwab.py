@@ -7,18 +7,26 @@ from cschwabpy.models import (
     OptionContractType,
     OptionContractStrategy,
 )
+from cschwabpy.models.token import Tokens
+
+from .test_token import mock_tokens
 
 mock_file_name = "mock_schwab_api_resp.json"
 
 
 def get_mock_response(
     mock_json_file_name: str = mock_file_name,
+    mocked_token: typing.Optional[Tokens] = None,
 ) -> typing.Mapping[str, typing.Any]:
     mock_api_res_file_path = Path(
         Path(__file__).resolve().parent, "data", mock_json_file_name
     )
+
     with open(mock_api_res_file_path, "r") as json_file:
-        return json.load(json_file)
+        json_dict = json.load(json_file)
+        if mocked_token is not None:
+            json_dict = {**json_dict, **(mocked_token.to_json())}
+        return json_dict
 
 
 def test_option_chain_parsing() -> None:
