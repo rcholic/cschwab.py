@@ -20,6 +20,9 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install build
         python -m pip install -r requirements.txt
+        python -m pip pytest pytest-cov pytest-asyncio
+    - name: Run pytest
+      run: poetry run pytest -vv -cov="cshwabpy" .
     - name: Build distribution in binary and source tarball
       run: python3 -m build
     - name: Store the distribution packages
