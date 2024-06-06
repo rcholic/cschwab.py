@@ -72,7 +72,7 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
             tokens=mocked_token,
             http_client=client,
         )
-        opt_chain_result = await cschwab_client.download_option_chain(
+        opt_chain_result = await cschwab_client.download_option_chain_async(
             underlying_symbol=symbol, from_date="2025-01-03", to_date="2025-01-03"
         )
         assert opt_chain_result is not None

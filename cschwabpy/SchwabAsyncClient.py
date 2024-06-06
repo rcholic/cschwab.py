@@ -117,7 +117,7 @@ class SchwabAsyncClient(object):
             if not self.__keep_client_alive:
                 await client.aclose()
 
-    async def download_option_chain(
+    async def download_option_chain_async(
         self,
         underlying_symbol: str,
         from_date: str,
