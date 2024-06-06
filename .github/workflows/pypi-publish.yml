@@ -20,7 +20,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install build
         python -m pip install -r requirements.txt
-        python -m pip pytest pytest-cov pytest-asyncio
+        python -m pip install pytest-cov
     - name: Run pytest
       run: python -m pytest -vv -s --cov="cshwabpy" .
     - name: Build distribution in binary and source tarball
