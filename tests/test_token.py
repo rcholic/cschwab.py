@@ -2,20 +2,32 @@
 
 import pytest
 import os
-import time
+from typing import Optional
+from datetime import datetime, timedelta
 from pathlib import Path
 from cschwabpy.models.token import Tokens, LocalTokenStore, ITokenStore
 
 
-def mock_tokens() -> Tokens:
-    return Tokens(
-        expires_in=1800,
-        token_type="Bearer",
-        scope="scope",
-        refresh_token="refresh_token",
-        access_token="access_token",
-        id_token="id_token",
-    )
+def mock_tokens(created_at: Optional[datetime] = None) -> Tokens:
+    if created_at is None:
+        return Tokens(
+            expires_in=1800,
+            token_type="Bearer",
+            scope="scope",
+            refresh_token="refresh_token",
+            access_token="access_token",
+            id_token="id_token",
+        )
+    else:
+        return Tokens(
+            expires_in=1800,
+            token_type="Bearer",
+            scope="scope",
+            refresh_token="refresh_token",
+            access_token="access_token",
+            id_token="id_token",
+            created_timestamp=created_at.timestamp(),
+        )
 
 
 def test_tokens_serialization() -> None:
@@ -31,6 +43,10 @@ def test_tokens_serialization() -> None:
     assert restored_tokens.id_token == tokens1.id_token
     assert restored_tokens.is_access_token_valid
     assert restored_tokens.is_refresh_token_valid
+
+    now = datetime.now()
+    tokens2 = mock_tokens(created_at=now - timedelta(seconds=3600))
+    assert not tokens2.is_access_token_valid
 
 
 def test_token_store() -> None:

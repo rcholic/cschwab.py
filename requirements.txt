@@ -1,5 +1,6 @@
 httpx
 pytest
+pytest-httpx
 pytest-asyncio
 pre-commit
 pydantic
