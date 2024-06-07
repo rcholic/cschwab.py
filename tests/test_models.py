@@ -11,6 +11,7 @@ from cschwabpy.models import (
     OptionContractType,
     OptionContractStrategy,
 )
+from cschwabpy.models.trade_models import SecuritiesAccount, MarginAccount, CashAccount
 from cschwabpy.models.token import Tokens, LocalTokenStore
 from cschwabpy.SchwabAsyncClient import SchwabAsyncClient
 
@@ -48,6 +49,24 @@ def test_option_chain_parsing() -> None:
         print(f"put dataframe size: {df.put_df.shape}. expiration: {df.expiration}")
         print(df.call_df.head(5))
         print(df.put_df.head(5))
+
+
+def test_parsing_securities_account():
+    json_mock = get_mock_response()["securities_account"]
+    accounts: typing.List[SecuritiesAccount] = []
+    for sec_account in json_mock:
+        securities_account = SecuritiesAccount(**sec_account).securitiesAccount
+        accounts.append(securities_account)
+        assert securities_account is not None
+        assert securities_account.accountNumber == "123"
+        # assert securities_account.accountType == "MARGIN"
+        assert securities_account.isDayTrader == False
+        assert securities_account.roundTrips == 0
+        assert securities_account.positions is not None
+        assert len(securities_account.positions) == 1
+        assert securities_account.initialBalances is not None
+
+    assert len(accounts) == 1
 
 
 @pytest.mark.asyncio
