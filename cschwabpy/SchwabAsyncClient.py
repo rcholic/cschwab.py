@@ -6,10 +6,12 @@ from cschwabpy.models import (
     OptionExpiration,
     OptionExpirationChainResponse,
 )
+from cschwabpy.models.trade_models import AccountNumberModel
 from typing import Optional, List, Mapping
 from cschwabpy.costants import (
     SCHWAB_API_BASE_URL,
     SCHWAB_MARKET_DATA_API_BASE_URL,
+    SCHWAB_TRADER_API_BASE_URL,
     SCHWAB_AUTH_PATH,
     SCHWAB_TOKEN_PATH,
 )
@@ -99,6 +101,26 @@ class SchwabAsyncClient(object):
             "Authorization": f"{self.__tokens.token_type} {self.__tokens.access_token}",
             "Accept": "application/json",
         }
+
+    async def get_account_numbers_async(self) -> List[AccountNumberModel]:
+        await self._ensure_valid_access_token()
+        import json
+
+        target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts/accountNumbers"
+        client = httpx.AsyncClient() if self.__client is None else self.__client
+        try:
+            response = await client.get(
+                url=target_url, params={}, headers=self.__auth_header()
+            )
+            json_res = response.json()
+            print("json_res: ", json_res)
+            account_numbers: List[AccountNumberModel] = []
+            for account_json in json_res:
+                account_numbers.append(AccountNumberModel(**account_json))
+            return account_numbers
+        finally:
+            if not self.__keep_client_alive:
+                await client.aclose()
 
     async def get_option_expirations_async(
         self, underlying_symbol: str

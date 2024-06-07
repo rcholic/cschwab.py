@@ -33,6 +33,11 @@ class JSONSerializableBaseModel(BaseModel):
         return self.model_dump(by_alias=True)
 
 
+class ErrorMessage(JSONSerializableBaseModel):
+    message: str
+    errors: List[str]
+
+
 class QueryFilterBase(JSONSerializableBaseModel):
     """Base class for query parameters filters."""
 

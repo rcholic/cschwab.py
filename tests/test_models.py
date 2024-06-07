@@ -121,3 +121,38 @@ async def test_get_option_expirations(httpx_mock: HTTPXMock):
         assert opt_expirations_list[0].daysToExpiration == 2
         assert opt_expirations_list[0].expirationType == "W"
         assert opt_expirations_list[0].standard
+
+
+@pytest.mark.asyncio
+async def test_get_account_numbers(httpx_mock: HTTPXMock):
+    # Mock response for account numbers API
+    mock_data = get_mock_response()
+    mocked_token = mock_tokens()
+    token_store = LocalTokenStore()
+    token_store.save_tokens(mocked_token)
+    if os.path.exists(Path(token_store.token_output_path)):
+        os.remove(token_store.token_output_path)  # clean up before test
+
+    mock_account_numbers_response = mock_data["account_numbers"]
+    # Combine mock response with token JSON
+    httpx_mock.add_response(json=mock_account_numbers_response)
+
+    async with httpx.AsyncClient() as client:
+        cschwab_client = SchwabAsyncClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            tokens=mocked_token,
+            http_client=client,
+        )
+
+        account_numbers = await cschwab_client.get_account_numbers_async()
+        # Assertions to verify the correctness of the API call
+        assert account_numbers is not None
+        assert (
+            len(account_numbers) == 2
+        )  # Expecting 2 account numbers in the mock response
+        assert account_numbers[0].accountNumber == "123456789"
+        assert account_numbers[0].hashValue == "hash1"
+        assert account_numbers[1].accountNumber == "987654321"
+        assert account_numbers[1].hashValue == "hash2"
