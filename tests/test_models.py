@@ -16,6 +16,7 @@ from cschwabpy.models.trade_models import (
     MarginAccount,
     CashAccount,
     AccountType,
+    Order,
 )
 from cschwabpy.models.token import Tokens, LocalTokenStore
 from cschwabpy.SchwabAsyncClient import SchwabAsyncClient
@@ -72,6 +73,14 @@ def test_parsing_securities_account():
         assert securities_account.initialBalances is not None
 
     assert len(accounts) == 1
+
+
+def test_parsing_order():
+    single_order_json = get_mock_response()["single_order"]
+    order_obj = Order(**single_order_json)
+    assert order_obj is not None
+    assert order_obj.orderId == 456
+    assert order_obj.cancelable == False
 
 
 @pytest.mark.asyncio

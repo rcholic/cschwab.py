@@ -85,6 +85,7 @@ class OptionContractType(str, Enum):
     CALL = "CALL"
     PUT = "PUT"
     ALL = "ALL"
+    UNKNOWN = "UNKNOWN"
 
 
 class OptionContractStrategy(str, Enum):
