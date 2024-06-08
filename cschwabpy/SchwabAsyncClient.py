@@ -206,7 +206,7 @@ class SchwabAsyncClient(object):
             if response.status_code == 201:
                 return True
             else:
-                raise Exception("Failed to place order. Status: ", response.headers)
+                raise Exception("Failed to place order. Status: ", response.status_code)
         finally:
             if not self.__keep_client_alive:
                 await client.aclose()
