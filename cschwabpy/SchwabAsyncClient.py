@@ -194,6 +194,8 @@ class SchwabAsyncClient(object):
         target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts/{account_number_hash.hashValue}/orders"
         client = httpx.AsyncClient() if self.__client is None else self.__client
         try:
+            _header = self.__auth_header()
+            _header["Content-Type"] = "application/json"
             print("order to place: ", json.dumps(order.to_json()))
             response = await client.post(
                 url=target_url,

@@ -96,7 +96,7 @@ class Duration(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class Destination(Enum):
+class Destination(str, Enum):
     INET = "INET"
     ECN_ARCA = "ECN_ARCA"
     CBOE = "CBOE"
@@ -165,6 +165,16 @@ class OrderStrategyType(str, Enum):
     BLAST_ALL = "BLAST_ALL"
     OCO = "OCO"
     TRIGGER = "TRIGGER"
+
+
+class TaxLotMethod(str, Enum):
+    FIFO = "FIFO"
+    LIFO = "LIFO"
+    HIGH_COST = "HIGH_COST"
+    LOW_COST = "LOW_COST"
+    AVERAGE_COST = "AVERAGE_COST"
+    SPECIFIC_LOT = "SPECIFIC_LOT"
+    LOSS_HARVESTER = "LOSS_HARVESTER"
 
 
 class AccountNumberWithHashID(JSONSerializableBaseModel):
@@ -357,7 +367,7 @@ class Order(JSONSerializableBaseModel):
     priceLinkBasis: Optional[str] = None
     priceLinkType: Optional[str] = None
     price: Optional[float] = None
-    taxLotMethod: Optional[str] = None
+    taxLotMethod: Optional[TaxLotMethod] = TaxLotMethod.FIFO
     orderLegCollection: List[OrderLegCollection] = []  # TODO: OrderLeg type
     activationPrice: Optional[float] = None
     specialInstruction: Optional[SpecialInstruction] = SpecialInstruction.ALL_OR_NONE
