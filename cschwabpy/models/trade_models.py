@@ -210,6 +210,12 @@ class ExecutionType(str, Enum):
     FILL = "FILL"
 
 
+class QuantityType(str, Enum):
+    ALL_SHARES = "ALL_SHARES"
+    DOLLARS = "DOLLARS"
+    SHARES = "SHARES"
+
+
 # --------------------------------------------------
 
 
@@ -273,11 +279,11 @@ class MarginInitialBalance(MarginBalance):
 
 class AccountInstrument(JSONSerializableBaseModel):
     assetType: Optional[AssetType] = None
-    cusip: Optional[str] = None
-    description: Optional[str] = None
-    instrumentId: Optional[int] = None
+    cusip: Optional[str] = ""
+    description: Optional[str] = ""
+    instrumentId: Optional[int] = 0
     symbol: Optional[str] = None
-    netChange: Optional[float] = None
+    netChange: Optional[float] = 0
 
 
 class AccountEquity(AccountInstrument):
@@ -315,12 +321,12 @@ class OrderLeg(JSONSerializableBaseModel):
 
 class OrderLegCollection(JSONSerializableBaseModel):
     orderLegType: Optional[AssetType] = None
-    legId: Optional[int] = None
+    legId: Optional[int] = 0
     instrument: Optional[AccountInstrument] = None  # e.g. AccountOption
     instruction: Optional[OrderLegInstruction] = None
     positionEffect: Optional[PositionEffect] = None
     quantity: Optional[float] = None
-    # quantityType: Optional[str] = None #TODO
+    quantityType: Optional[QuantityType] = QuantityType.SHARES
     # toSymbol: Optional[str] = None #TODO
 
 
@@ -407,22 +413,22 @@ class Order(JSONSerializableBaseModel):
     quantity: Optional[float] = 0
     filledQuantity: Optional[float] = 0
     remainingQuantity: Optional[float] = 0
-    requestedDestination: Optional[Destination] = None
-    destinationLinkName: Optional[str] = None
+    requestedDestination: Optional[Destination] = Destination.AUTO
+    destinationLinkName: Optional[str] = "AUTO"
     releaseTime: Optional[str] = None
     stopPrice: Optional[float] = None
     stopPriceLinkBasis: Optional[PriceLinkBasis] = PriceLinkBasis.AVERAGE
-    stopPriceLinkType: Optional[PriceLinkType] = PriceLinkType.PERCENT
+    stopPriceLinkType: Optional[PriceLinkType] = PriceLinkType.VALUE
     stopPriceOffset: Optional[float] = 0
     stopType: Optional[StopType] = StopType.MARK
     priceLinkBasis: Optional[PriceLinkBasis] = PriceLinkBasis.AVERAGE
-    priceLinkType: Optional[str] = None
+    priceLinkType: Optional[PriceLinkType] = PriceLinkType.VALUE
     price: Optional[float] = None
     taxLotMethod: Optional[TaxLotMethod] = TaxLotMethod.FIFO
-    orderLegCollection: List[OrderLegCollection] = []  # TODO: OrderLeg type
+    orderLegCollection: List[OrderLegCollection] = []
     activationPrice: Optional[float] = 0
     specialInstruction: Optional[SpecialInstruction] = SpecialInstruction.ALL_OR_NONE
-    orderStrategyType: Optional[OrderStrategyType] = None
+    orderStrategyType: Optional[OrderStrategyType] = OrderStrategyType.SINGLE
     orderId: Optional[int] = 0
     cancelable: Optional[bool] = False
     editable: Optional[bool] = False
@@ -430,8 +436,8 @@ class Order(JSONSerializableBaseModel):
     enteredTime: Optional[str] = None
     closeTime: Optional[str] = None
     tag: Optional[str] = ""
-    accountNumber: Optional[int] = None  # or str ?
-    orderActivityCollection: List[OrderActivity] = []  # TODO: OrderActivity type
+    accountNumber: Optional[int] = 0  # or str ?
+    orderActivityCollection: List[OrderActivity] = []
     replacingOrderCollection: List[str] = []
     childOrderStrategies: List[str] = []
     statusDescription: Optional[str] = None
