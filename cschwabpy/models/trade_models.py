@@ -2,8 +2,6 @@ from cschwabpy.models import JSONSerializableBaseModel, OptionContractType
 from typing import Optional, List, Any
 from pydantic import Field
 from enum import Enum
-from enum import Enum
-from enum import Enum
 
 
 class AccountType(str, Enum):
@@ -177,6 +175,44 @@ class TaxLotMethod(str, Enum):
     LOSS_HARVESTER = "LOSS_HARVESTER"
 
 
+class PriceLinkType(str, Enum):
+    VALUE = "VALUE"
+    PERCENT = "PERCENT"
+    TICK = "TICK"
+
+
+class StopType(str, Enum):
+    STANDARD = "STANDARD"
+    BID = "BID"
+    ASK = "ASK"
+    LAST = "LAST"
+    MARK = "MARK"
+
+
+class PriceLinkBasis(str, Enum):
+    MANUAL = "MANUAL"
+    BASE = "BASE"
+    TRIGGER = "TRIGGER"
+    LAST = "LAST"
+    BID = "BID"
+    ASK = "ASK"
+    ASK_BID = "ASK_BID"
+    MARK = "MARK"
+    AVERAGE = "AVERAGE"
+
+
+class OrderActivityType(str, Enum):
+    EXECUTION = "EXECUTION"
+    ORDER_ACTION = "ORDER_ACTION"
+
+
+class ExecutionType(str, Enum):
+    FILL = "FILL"
+
+
+# --------------------------------------------------
+
+
 class AccountNumberWithHashID(JSONSerializableBaseModel):
     """accountNumber and hashValue pair.
 
@@ -345,6 +381,21 @@ class SecuritiesAccount(JSONSerializableBaseModel):
 
 
 # Order models
+class ExecutionLeg(JSONSerializableBaseModel):
+    legId: Optional[int] = 0
+    price: Optional[float] = 0
+    quantity: Optional[float] = 0
+    mismarkedQuantity: Optional[float] = 0
+    instrumentId: Optional[int] = 0
+    time: Optional[str] = None
+
+
+class OrderActivity(JSONSerializableBaseModel):
+    activityType: Optional[OrderActivityType] = OrderActivityType.ORDER_ACTION
+    executionType: Optional[ExecutionType] = ExecutionType.FILL
+    quanity: Optional[float] = 0
+    orderRemainingQuantity: Optional[float] = 0
+    executionLegs: List[ExecutionLeg] = []
 
 
 class Order(JSONSerializableBaseModel):
@@ -360,27 +411,27 @@ class Order(JSONSerializableBaseModel):
     destinationLinkName: Optional[str] = None
     releaseTime: Optional[str] = None
     stopPrice: Optional[float] = None
-    stopPriceLinkBasis: Optional[str] = None
-    stopPriceLinkType: Optional[str] = None
-    stopPriceOffset: Optional[float] = None
-    stopType: Optional[str] = None  # TODO: enum this
-    priceLinkBasis: Optional[str] = None
+    stopPriceLinkBasis: Optional[PriceLinkBasis] = PriceLinkBasis.AVERAGE
+    stopPriceLinkType: Optional[PriceLinkType] = PriceLinkType.PERCENT
+    stopPriceOffset: Optional[float] = 0
+    stopType: Optional[StopType] = StopType.MARK
+    priceLinkBasis: Optional[PriceLinkBasis] = PriceLinkBasis.AVERAGE
     priceLinkType: Optional[str] = None
     price: Optional[float] = None
     taxLotMethod: Optional[TaxLotMethod] = TaxLotMethod.FIFO
     orderLegCollection: List[OrderLegCollection] = []  # TODO: OrderLeg type
-    activationPrice: Optional[float] = None
+    activationPrice: Optional[float] = 0
     specialInstruction: Optional[SpecialInstruction] = SpecialInstruction.ALL_OR_NONE
     orderStrategyType: Optional[OrderStrategyType] = None
-    orderId: Optional[int] = None
+    orderId: Optional[int] = 0
     cancelable: Optional[bool] = False
     editable: Optional[bool] = False
     status: Optional[OrderStatus] = None
     enteredTime: Optional[str] = None
     closeTime: Optional[str] = None
-    tag: Optional[str] = None
+    tag: Optional[str] = ""
     accountNumber: Optional[int] = None  # or str ?
-    orderActivityCollection: List[Any] = []  # TODO: OrderActivity type
+    orderActivityCollection: List[OrderActivity] = []  # TODO: OrderActivity type
     replacingOrderCollection: List[str] = []
     childOrderStrategies: List[str] = []
     statusDescription: Optional[str] = None

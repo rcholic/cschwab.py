@@ -193,6 +193,7 @@ class SchwabAsyncClient(object):
         await self._ensure_valid_access_token()
         target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts/{account_number_hash.hashValue}/orders"
         client = httpx.AsyncClient() if self.__client is None else self.__client
+
         try:
             _header = self.__auth_header()
             _header["Content-Type"] = "application/json"
