@@ -7,7 +7,7 @@ from cschwabpy.models import (
     OptionExpirationChainResponse,
 )
 from cschwabpy.models.trade_models import (
-    AccountNumberModel,
+    AccountNumberWithHashID,
     SecuritiesAccount,
     Account,
     OrderStatus,
@@ -111,7 +111,7 @@ class SchwabAsyncClient(object):
             "Accept": "application/json",
         }
 
-    async def get_account_numbers_async(self) -> List[AccountNumberModel]:
+    async def get_account_numbers_async(self) -> List[AccountNumberWithHashID]:
         await self._ensure_valid_access_token()
         import json
 
@@ -122,22 +122,24 @@ class SchwabAsyncClient(object):
                 url=target_url, params={}, headers=self.__auth_header()
             )
             json_res = response.json()
-            account_numbers: List[AccountNumberModel] = []
+            account_numbers: List[AccountNumberWithHashID] = []
             for account_json in json_res:
-                account_numbers.append(AccountNumberModel(**account_json))
+                account_numbers.append(AccountNumberWithHashID(**account_json))
             return account_numbers
         finally:
             if not self.__keep_client_alive:
                 await client.aclose()
 
     async def get_accounts_async(
-        self, include_positions: bool = True, with_account_number: Optional[str] = None
+        self,
+        include_positions: bool = True,
+        with_account_number: Optional[AccountNumberWithHashID] = None,
     ) -> List[Account]:
         """get all accounts except a specific account_number is provided."""
         await self._ensure_valid_access_token()
         target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts"
         if with_account_number is not None:
-            target_url = f"{target_url}/{with_account_number}"
+            target_url = f"{target_url}/{with_account_number.hashValue}"
 
         if include_positions:
             target_url = f"{target_url}?fields=positions"
@@ -169,9 +171,11 @@ class SchwabAsyncClient(object):
                 await client.aclose()
 
     async def get_single_account_async(
-        self, with_account_number: str, include_positions: bool = True
+        self,
+        with_account_number: AccountNumberWithHashID,
+        include_positions: bool = True,
     ) -> Optional[Account]:
-        """Convenience method to get a single account by account number."""
+        """Convenience method to get a single account by account number's encrypted ID."""
         account = await self.get_accounts_async(
             include_positions=include_positions, with_account_number=with_account_number
         )
@@ -182,14 +186,16 @@ class SchwabAsyncClient(object):
 
     async def get_orders_async(
         self,
-        account_number: str,
+        account_number: AccountNumberWithHashID,
         from_entered_time: datetime,
         to_entered_time: datetime,
         max_count: int = 1000,
         status: Optional[OrderStatus] = None,
     ) -> List[Order]:
         await self._ensure_valid_access_token()
-        target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts/{account_number}/orders"
+        target_url = (
+            f"{SCHWAB_TRADER_API_BASE_URL}/accounts/{account_number.hashValue}/orders"
+        )
         target_url += f"?fromEnteredTime={util.to_iso8601_str(from_entered_time)}&toEnteredTime={util.to_iso8601_str(to_entered_time)}&maxResults={max_count}"
         if status is not None:
             target_url += f"&status={status.value}"

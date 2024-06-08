@@ -148,7 +148,15 @@ class PositionEffect(str, Enum):
     AUTOMATIC = "AUTOMATIC"
 
 
-class AccountNumberModel(JSONSerializableBaseModel):
+class AccountNumberWithHashID(JSONSerializableBaseModel):
+    """accountNumber and hashValue pair.
+
+    Args:
+        accountNumber is a numerical string such as 12345678
+        hashValue is secret/encrypted ID such as EECD2E7A0B9C1935
+        hashValue is used to get resources under the account such as retrieving orders.
+    """
+
     accountNumber: str
     hashValue: str
 

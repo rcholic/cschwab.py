@@ -14,6 +14,7 @@ from cschwabpy.models import (
 )
 from cschwabpy.models.trade_models import (
     SecuritiesAccount,
+    AccountNumberWithHashID,
     MarginAccount,
     CashAccount,
     AccountType,
@@ -26,6 +27,10 @@ from cschwabpy.SchwabAsyncClient import SchwabAsyncClient
 from .test_token import mock_tokens
 
 mock_file_name = "mock_schwab_api_resp.json"
+
+
+def mock_account() -> AccountNumberWithHashID:
+    return AccountNumberWithHashID(accountNumber="123", hashValue="hash1")
 
 
 def get_mock_response(
@@ -106,7 +111,7 @@ async def test_get_order(httpx_mock: HTTPXMock):
             http_client=client,
         )
         retrieved_orders = await cschwab_client.get_orders_async(
-            account_number="123",
+            account_number=mock_account(),
             from_entered_time=from_entered_time,
             to_entered_time=to_entered_time,
             status=OrderStatus.FILLED,
@@ -137,7 +142,7 @@ async def test_get_single_account(httpx_mock: HTTPXMock):
             http_client=client,
         )
         single_account = await cschwab_client.get_single_account_async(
-            with_account_number="123", include_positions=True
+            with_account_number=mock_account(), include_positions=True
         )
         assert single_account is not None
         assert single_account.accountNumber == "123"
