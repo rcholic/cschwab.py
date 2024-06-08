@@ -123,7 +123,7 @@ async def test_get_securities_account(httpx_mock: HTTPXMock):
             http_client=client,
         )
         securities_accounts = await cschwab_client.get_accounts_async(
-            includ_positions=True
+            include_positions=True
         )
 
         assert securities_accounts is not None

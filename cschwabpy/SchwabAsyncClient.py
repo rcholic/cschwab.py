@@ -122,7 +122,7 @@ class SchwabAsyncClient(object):
                 await client.aclose()
 
     async def get_accounts_async(
-        self, includ_positions: bool = True, with_account_number: Optional[str] = None
+        self, include_positions: bool = True, with_account_number: Optional[str] = None
     ) -> List[Account]:
         """get all accounts except a specific account_number is provided."""
         await self._ensure_valid_access_token()
@@ -130,7 +130,7 @@ class SchwabAsyncClient(object):
         if with_account_number is not None:
             target_url = f"{target_url}/{with_account_number}"
 
-        if includ_positions:
+        if include_positions:
             target_url = f"{target_url}?fields=positions"
 
         client = httpx.AsyncClient() if self.__client is None else self.__client
@@ -164,7 +164,7 @@ class SchwabAsyncClient(object):
     ) -> Optional[Account]:
         """Convenience method to get a single account by account number."""
         account = await self.get_accounts_async(
-            includ_positions=include_positions, with_account_number=with_account_number
+            include_positions=include_positions, with_account_number=with_account_number
         )
         if account is None or len(account) == 0:
             return None
