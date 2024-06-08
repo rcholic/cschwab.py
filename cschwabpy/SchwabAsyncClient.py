@@ -6,7 +6,16 @@ from cschwabpy.models import (
     OptionExpiration,
     OptionExpirationChainResponse,
 )
-from cschwabpy.models.trade_models import AccountNumberModel, SecuritiesAccount, Account
+from cschwabpy.models.trade_models import (
+    AccountNumberModel,
+    SecuritiesAccount,
+    Account,
+    OrderStatus,
+    Order,
+)
+import cschwabpy.util as util
+
+from datetime import datetime, timedelta
 from typing import Optional, List, Mapping
 from cschwabpy.costants import (
     SCHWAB_API_BASE_URL,
@@ -170,6 +179,38 @@ class SchwabAsyncClient(object):
             return None
 
         return account[0]
+
+    async def get_orders_async(
+        self,
+        account_number: str,
+        from_entered_time: datetime,
+        to_entered_time: datetime,
+        max_count: int = 1000,
+        status: Optional[OrderStatus] = None,
+    ) -> List[Order]:
+        await self._ensure_valid_access_token()
+        target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts/{account_number}/orders"
+        target_url += f"?fromEnteredTime={util.to_iso8601_str(from_entered_time)}&toEnteredTime={util.to_iso8601_str(to_entered_time)}&maxResults={max_count}"
+        if status is not None:
+            target_url += f"&status={status.value}"
+
+        client = httpx.AsyncClient() if self.__client is None else self.__client
+        try:
+            response = await client.get(
+                url=target_url, params={}, headers=self.__auth_header()
+            )
+            if response.status_code == 200:
+                json_res = response.json()
+                orders: List[Order] = []
+                for order_json in json_res:
+                    order = Order(**order_json)
+                    orders.append(order)
+                return orders
+            else:
+                raise Exception("Failed to get orders. Status: ", response.status_code)
+        finally:
+            if not self.__keep_client_alive:
+                await client.aclose()
 
     async def get_option_expirations_async(
         self, underlying_symbol: str

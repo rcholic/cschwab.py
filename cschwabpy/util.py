@@ -36,6 +36,12 @@ def ts_to_date_string(
     return ts_to_datetime(ts, tz).strftime(YMD_FMT)
 
 
+def to_iso8601_str(dt: datetime) -> str:
+    dt = dt.astimezone(eastern_tz)
+    dt_str = dt.strftime("%Y-%m-%dT%H:%M:%S")
+    return dt_str + ".000Z"
+
+
 def today_str(tz: pytz.BaseTzInfo = eastern_tz) -> str:  # type: ignore
     """Today in string. Returns Y-m-d."""  # noqa: DAR201
     return now(tz=tz).strftime(YMD_FMT)

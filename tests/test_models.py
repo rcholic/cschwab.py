@@ -3,6 +3,7 @@ import os
 import typing
 import httpx
 import pytest
+from datetime import datetime, timedelta
 from pytest_httpx import HTTPXMock
 from pathlib import Path
 from cschwabpy.models import (
@@ -17,6 +18,7 @@ from cschwabpy.models.trade_models import (
     CashAccount,
     AccountType,
     Order,
+    OrderStatus,
 )
 from cschwabpy.models.token import Tokens, LocalTokenStore
 from cschwabpy.SchwabAsyncClient import SchwabAsyncClient
@@ -81,6 +83,38 @@ def test_parsing_order():
     assert order_obj is not None
     assert order_obj.orderId == 456
     assert order_obj.cancelable == False
+
+
+@pytest.mark.asyncio
+async def test_get_order(httpx_mock: HTTPXMock):
+    json_mock = get_mock_response()["single_order"]
+    mocked_token = mock_tokens()
+    token_store = LocalTokenStore()
+    if os.path.exists(Path(token_store.token_output_path)):
+        os.remove(token_store.token_output_path)  # clean up before test
+
+    token_store.save_tokens(mocked_token)
+    httpx_mock.add_response(json=[json_mock])  # make it array type
+    from_entered_time = datetime.now() - timedelta(hours=3)
+    to_entered_time = datetime.now()
+    async with httpx.AsyncClient() as client:
+        cschwab_client = SchwabAsyncClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            tokens=mocked_token,
+            http_client=client,
+        )
+        retrieved_orders = await cschwab_client.get_orders_async(
+            account_number="123",
+            from_entered_time=from_entered_time,
+            to_entered_time=to_entered_time,
+            status=OrderStatus.FILLED,
+        )
+        assert retrieved_orders is not None
+        assert len(retrieved_orders) == 1
+        assert retrieved_orders[0].orderId == 456
+        assert retrieved_orders[0].cancelable == False
 
 
 @pytest.mark.asyncio
