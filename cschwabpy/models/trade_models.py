@@ -3,6 +3,7 @@ from typing import Optional, List, Any
 from pydantic import Field
 from enum import Enum
 from enum import Enum
+from enum import Enum
 
 
 class AccountType(str, Enum):
@@ -148,6 +149,24 @@ class PositionEffect(str, Enum):
     AUTOMATIC = "AUTOMATIC"
 
 
+class SpecialInstruction(str, Enum):
+    ALL_OR_NONE = "ALL_OR_NONE"
+    DO_NOT_REDUCE = "DO_NOT_REDUCE"
+    ALL_OR_NONE_DO_NOT_REDUCE = "ALL_OR_NONE_DO_NOT_REDUCE"
+
+
+class OrderStrategyType(str, Enum):
+    SINGLE = "SINGLE"
+    CANCEL = "CANCEL"
+    RECALL = "RECALL"
+    PAIR = "PAIR"
+    FLATTEN = "FLATTEN"
+    TWO_DAY_SWAP = "TWO_DAY_SWAP"
+    BLAST_ALL = "BLAST_ALL"
+    OCO = "OCO"
+    TRIGGER = "TRIGGER"
+
+
 class AccountNumberWithHashID(JSONSerializableBaseModel):
     """accountNumber and hashValue pair.
 
@@ -235,6 +254,19 @@ class AccountOption(AccountInstrument):
     underlyingSymbol: Optional[str] = None
 
 
+class OrderLeg(JSONSerializableBaseModel):
+    askPrice: Optional[float] = None
+    bidPrice: Optional[float] = None
+    lastPrice: Optional[float] = None
+    marketPrice: Optional[float] = None
+    projectedCommission: Optional[float] = None
+    quantity: Optional[float] = None
+    finalSymbol: Optional[str] = None
+    legId: Optional[int] = None
+    assetType: Optional[AssetType] = None
+    instruction: Optional[OrderLegInstruction] = None
+
+
 class OrderLegCollection(JSONSerializableBaseModel):
     orderLegType: Optional[AssetType] = None
     legId: Optional[int] = None
@@ -306,9 +338,9 @@ class SecuritiesAccount(JSONSerializableBaseModel):
 
 
 class Order(JSONSerializableBaseModel):
-    session: Optional[Session] = None  # TODO: make this Enum type
-    duration: Optional[Duration] = None  # TODO: make this Enum type
-    orderType: Optional[OrderType] = None  # TODO: make this Enum type
+    session: Optional[Session] = None
+    duration: Optional[Duration] = None
+    orderType: Optional[OrderType] = OrderType.LIMIT
     cancelTime: Optional[str] = None
     complexOrderStrategyType: Optional[ComplexOrderStrategyType] = None
     quantity: Optional[float] = 0
@@ -328,8 +360,8 @@ class Order(JSONSerializableBaseModel):
     taxLotMethod: Optional[str] = None
     orderLegCollection: List[OrderLegCollection] = []  # TODO: OrderLeg type
     activationPrice: Optional[float] = None
-    specialInstruction: Optional[str] = None  # TODO: enum this
-    orderStrategyType: Optional[str] = None
+    specialInstruction: Optional[SpecialInstruction] = SpecialInstruction.ALL_OR_NONE
+    orderStrategyType: Optional[OrderStrategyType] = None
     orderId: Optional[int] = None
     cancelable: Optional[bool] = False
     editable: Optional[bool] = False

@@ -24,10 +24,11 @@ from cschwabpy.costants import (
     SCHWAB_AUTH_PATH,
     SCHWAB_TOKEN_PATH,
 )
-import time
+
 import httpx
 import re
 import base64
+import json
 
 
 class SchwabAsyncClient(object):
@@ -107,6 +108,7 @@ class SchwabAsyncClient(object):
 
     def __auth_header(self) -> Mapping[str, str]:
         return {
+            # "Content-Type": "application/json",
             "Authorization": f"{self.__tokens.token_type} {self.__tokens.access_token}",
             "Accept": "application/json",
         }
@@ -184,6 +186,27 @@ class SchwabAsyncClient(object):
             return None
 
         return account[0]
+
+    async def place_order_async(
+        self, account_number_hash: AccountNumberWithHashID, order: Order
+    ) -> bool:
+        await self._ensure_valid_access_token()
+        target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts/{account_number_hash.hashValue}/orders"
+        client = httpx.AsyncClient() if self.__client is None else self.__client
+        try:
+            print("order to place: ", json.dumps(order.to_json()))
+            response = await client.post(
+                url=target_url,
+                json=json.dumps(order.to_json()),
+                headers=self.__auth_header(),
+            )
+            if response.status_code == 201:
+                return True
+            else:
+                raise Exception("Failed to place order. Status: ", response.status_code)
+        finally:
+            if not self.__keep_client_alive:
+                await client.aclose()
 
     async def get_orders_async(
         self,
