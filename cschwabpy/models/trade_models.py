@@ -10,6 +10,30 @@ class AccountType(str, Enum):
     IRA = "IRA"
 
 
+class OrderStatus(int, Enum):
+    AWAITING_PARENT_ORDER = 1
+    AWAITING_CONDITION = 2
+    AWAITING_STOP_CONDITION = 3
+    AWAITING_MANUAL_REVIEW = 4
+    ACCEPTED = 5
+    AWAITING_UR_OUT = 6
+    PENDING_ACTIVATION = 7
+    QUEUED = 8
+    WORKING = 9
+    REJECTED = 10
+    PENDING_CANCEL = 11
+    CANCELED = 12
+    PENDING_REPLACE = 13
+    REPLACED = 14
+    FILLED = 15
+    EXPIRED = 16
+    NEW = 17
+    AWAITING_RELEASE_TIME = 18
+    PENDING_ACKNOWLEDGEMENT = 19
+    PENDING_RECALL = 20
+    UNKNOWN = 21
+
+
 class AccountNumberModel(JSONSerializableBaseModel):
     accountNumber: str
     hashValue: str
@@ -114,3 +138,45 @@ class CashAccount(Account):
 
 class SecuritiesAccount(JSONSerializableBaseModel):
     securitiesAccount: Account
+
+
+# Order models
+
+
+class Order(JSONSerializableBaseModel):
+    session: Optional[str] = None  # TODO: make this Enum type
+    duration: Optional[str] = None  # TODO: make this Enum type
+    orderType: Optional[str] = None  # TODO: make this Enum type
+    cancelTime: Optional[str] = None
+    complexOrderStrategyType: Optional[str] = None
+    quantity: Optional[float] = 0
+    filledQuantity: Optional[float] = 0
+    remainingQuantity: Optional[float] = 0
+    requestedDestination: Optional[str] = None
+    destinationLinkName: Optional[str] = None
+    releaseTime: Optional[str] = None
+    stopPrice: Optional[float] = None
+    stopPriceLinkBasis: Optional[str] = None
+    stopPriceLinkType: Optional[str] = None
+    stopPriceOffset: Optional[float] = None
+    stopType: Optional[str] = None  # TODO: enum this
+    priceLinkBasis: Optional[str] = None
+    priceLinkType: Optional[str] = None
+    price: Optional[float] = None
+    taxLotMethod: Optional[str] = None
+    orderLegCollection: List[Any] = []  # TODO: OrderLeg type
+    activationPrice: Optional[float] = None
+    specialInstruction: Optional[str] = None  # TODO: enum this
+    orderStrategyType: Optional[str] = None
+    orderId: Optional[int] = None
+    cancelable: Optional[bool] = False
+    editable: Optional[bool] = False
+    status: Optional[OrderStatus] = None
+    enteredTime: Optional[str] = None
+    closeTime: Optional[str] = None
+    tag: Optional[str] = None
+    accountNumber: Optional[str] = None  # or int ?
+    orderActivityCollection: List[Any] = []  # TODO: OrderActivity type
+    replacingOrderCollection: List[str] = []
+    childOrderStrategies: List[str] = []
+    statusDescription: Optional[str] = None
