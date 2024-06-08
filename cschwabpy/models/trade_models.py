@@ -2,6 +2,11 @@ from cschwabpy.models import JSONSerializableBaseModel
 from typing import Optional, List, Any
 from pydantic import Field
 from enum import Enum
+from enum import Enum
+from enum import Enum
+from enum import Enum
+from enum import Enum
+from enum import Enum
 
 
 class AccountType(str, Enum):
@@ -10,28 +15,103 @@ class AccountType(str, Enum):
     IRA = "IRA"
 
 
-class OrderStatus(int, Enum):
-    AWAITING_PARENT_ORDER = 1
-    AWAITING_CONDITION = 2
-    AWAITING_STOP_CONDITION = 3
-    AWAITING_MANUAL_REVIEW = 4
-    ACCEPTED = 5
-    AWAITING_UR_OUT = 6
-    PENDING_ACTIVATION = 7
-    QUEUED = 8
-    WORKING = 9
-    REJECTED = 10
-    PENDING_CANCEL = 11
-    CANCELED = 12
-    PENDING_REPLACE = 13
-    REPLACED = 14
-    FILLED = 15
-    EXPIRED = 16
-    NEW = 17
-    AWAITING_RELEASE_TIME = 18
-    PENDING_ACKNOWLEDGEMENT = 19
-    PENDING_RECALL = 20
-    UNKNOWN = 21
+class OrderStatus(str, Enum):
+    AWAITING_PARENT_ORDER = "AWAITING_PARENT_ORDER"
+    AWAITING_CONDITION = "AWAITING_CONDITION"
+    AWAITING_STOP_CONDITION = "AWAITING_STOP_CONDITION"
+    AWAITING_MANUAL_REVIEW = "AWAITING_MANUAL_REVIEW"
+    ACCEPTED = "ACCEPTED"
+    AWAITING_UR_OUT = "AWAITING_UR_OUT"
+    PENDING_ACTIVATION = "PENDING_ACTIVATION"
+    QUEUED = "QUEUED"
+    WORKING = "WORKING"
+    REJECTED = "REJECTED"
+    PENDING_CANCEL = "PENDING_CANCEL"
+    CANCELED = "CANCELED"
+    PENDING_REPLACE = "PENDING_REPLACE"
+    REPLACED = "REPLACED"
+    FILLED = "FILLED"
+    EXPIRED = "EXPIRED"
+    NEW = "NEW"
+    AWAITING_RELEASE_TIME = "AWAITING_RELEASE_TIME"
+    PENDING_ACKNOWLEDGEMENT = "PENDING_ACKNOWLEDGEMENT"
+    PENDING_RECALL = "PENDING_RECALL"
+    UNKNOWN = "UNKNOWN"
+
+
+class OrderType(str, Enum):
+    MARKET = "MARKET"
+    LIMIT = "LIMIT"
+    STOP = "STOP"
+    STOP_LIMIT = "STOP_LIMIT"
+    TRAILING_STOP = "TRAILING_STOP"
+    CABINET = "CABINET"
+    NON_MARKETABLE = "NON_MARKETABLE"
+    MARKET_ON_CLOSE = "MARKET_ON_CLOSE"
+    EXERCISE = "EXERCISE"
+    TRAILING_STOP_LIMIT = "TRAILING_STOP_LIMIT"
+    NET_DEBIT = "NET_DEBIT"
+    NET_CREDIT = "NET_CREDIT"
+    NET_ZERO = "NET_ZERO"
+    LIMIT_ON_CLOSE = "LIMIT_ON_CLOSE"
+    UNKNOWN = "UNKNOWN"
+
+
+class ComplexOrderStrategyType(str, Enum):
+    NONE = "NONE"
+    COVERED = "COVERED"
+    VERTICAL = "VERTICAL"
+    BACK_RATIO = "BACK_RATIO"
+    CALENDAR = "CALENDAR"
+    DIAGONAL = "DIAGONAL"
+    STRADDLE = "STRADDLE"
+    STRANGLE = "STRANGLE"
+    COLLAR_SYNTHETIC = "COLLAR_SYNTHETIC"
+    BUTTERFLY = "BUTTERFLY"
+    CONDOR = "CONDOR"
+    IRON_CONDOR = "IRON_CONDOR"
+    VERTICAL_ROLL = "VERTICAL_ROLL"
+    COLLAR_WITH_STOCK = "COLLAR_WITH_STOCK"
+    DOUBLE_DIAGONAL = "DOUBLE_DIAGONAL"
+    UNBALANCED_BUTTERFLY = "UNBALANCED_BUTTERFLY"
+    UNBALANCED_CONDOR = "UNBALANCED_CONDOR"
+    UNBALANCED_IRON_CONDOR = "UNBALANCED_IRON_CONDOR"
+    UNBALANCED_VERTICAL_ROLL = "UNBALANCED_VERTICAL_ROLL"
+    MUTUAL_FUND_SWAP = "MUTUAL_FUND_SWAP"
+    CUSTOM = "CUSTOM"
+
+
+class Session(str, Enum):
+    NORMAL = "NORMAL"
+    AM = "AM"
+    PM = "PM"
+    SEAMLESS = "SEAMLESS"
+
+
+class Duration(str, Enum):
+    DAY = "DAY"
+    GOOD_TILL_CANCEL = "GOOD_TILL_CANCEL"
+    FILL_OR_KILL = "FILL_OR_KILL"
+    IMMEDIATE_OR_CANCEL = "IMMEDIATE_OR_CANCEL"
+    END_OF_WEEK = "END_OF_WEEK"
+    END_OF_MONTH = "END_OF_MONTH"
+    NEXT_END_OF_MONTH = "NEXT_END_OF_MONTH"
+    UNKNOWN = "UNKNOWN"
+
+
+class Destination(Enum):
+    INET = "INET"
+    ECN_ARCA = "ECN_ARCA"
+    CBOE = "CBOE"
+    AMEX = "AMEX"
+    PHLX = "PHLX"
+    ISE = "ISE"
+    BOX = "BOX"
+    NYSE = "NYSE"
+    NASDAQ = "NASDAQ"
+    BATS = "BATS"
+    C2 = "C2"
+    AUTO = "AUTO"
 
 
 class AccountNumberModel(JSONSerializableBaseModel):
@@ -144,15 +224,15 @@ class SecuritiesAccount(JSONSerializableBaseModel):
 
 
 class Order(JSONSerializableBaseModel):
-    session: Optional[str] = None  # TODO: make this Enum type
-    duration: Optional[str] = None  # TODO: make this Enum type
-    orderType: Optional[str] = None  # TODO: make this Enum type
+    session: Optional[Session] = None  # TODO: make this Enum type
+    duration: Optional[Duration] = None  # TODO: make this Enum type
+    orderType: Optional[OrderType] = None  # TODO: make this Enum type
     cancelTime: Optional[str] = None
-    complexOrderStrategyType: Optional[str] = None
+    complexOrderStrategyType: Optional[ComplexOrderStrategyType] = None
     quantity: Optional[float] = 0
     filledQuantity: Optional[float] = 0
     remainingQuantity: Optional[float] = 0
-    requestedDestination: Optional[str] = None
+    requestedDestination: Optional[Destination] = None
     destinationLinkName: Optional[str] = None
     releaseTime: Optional[str] = None
     stopPrice: Optional[float] = None
@@ -175,7 +255,7 @@ class Order(JSONSerializableBaseModel):
     enteredTime: Optional[str] = None
     closeTime: Optional[str] = None
     tag: Optional[str] = None
-    accountNumber: Optional[str] = None  # or int ?
+    accountNumber: Optional[int] = None  # or str ?
     orderActivityCollection: List[Any] = []  # TODO: OrderActivity type
     replacingOrderCollection: List[str] = []
     childOrderStrategies: List[str] = []
