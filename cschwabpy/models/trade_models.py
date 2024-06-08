@@ -1,10 +1,6 @@
-from cschwabpy.models import JSONSerializableBaseModel
+from cschwabpy.models import JSONSerializableBaseModel, OptionContractType
 from typing import Optional, List, Any
 from pydantic import Field
-from enum import Enum
-from enum import Enum
-from enum import Enum
-from enum import Enum
 from enum import Enum
 from enum import Enum
 
@@ -114,6 +110,44 @@ class Destination(Enum):
     AUTO = "AUTO"
 
 
+# class OrderLegType(str, Enum):
+class AssetType(str, Enum):  # same as OrderLegType
+    EQUITY = "EQUITY"
+    OPTION = "OPTION"
+    INDEX = "INDEX"
+    MUTUAL_FUND = "MUTUAL_FUND"
+    CASH_EQUIVALENT = "CASH_EQUIVALENT"
+    FIXED_INCOME = "FIXED_INCOME"
+    CURRENCY = "CURRENCY"
+    COLLECTIVE_INVESTMENT = "COLLECTIVE_INVESTMENT"
+
+
+class OptionType(str, Enum):
+    VANILLA = "VANILLA"
+    BINARY = "BINARY"
+    BARRIER = "BARRIER"
+    UNKNOWN = "UNKNOWN"
+
+
+class OrderLegInstruction(str, Enum):
+    BUY = "BUY"
+    SELL = "SELL"
+    BUY_TO_COVER = "BUY_TO_COVER"
+    SELL_SHORT = "SELL_SHORT"
+    BUY_TO_OPEN = "BUY_TO_OPEN"
+    BUY_TO_CLOSE = "BUY_TO_CLOSE"
+    SELL_TO_OPEN = "SELL_TO_OPEN"
+    SELL_TO_CLOSE = "SELL_TO_CLOSE"
+    EXCHANGE = "EXCHANGE"
+    SELL_SHORT_EXEMPT = "SELL_SHORT_EXEMPT"
+
+
+class PositionEffect(str, Enum):
+    OPENING = "OPENING"
+    CLOSING = "CLOSING"
+    AUTOMATIC = "AUTOMATIC"
+
+
 class AccountNumberModel(JSONSerializableBaseModel):
     accountNumber: str
     hashValue: str
@@ -162,6 +196,46 @@ class MarginInitialBalance(MarginBalance):
     cashAvailableForTrading: Optional[float] = None
     cashReceipts: Optional[float] = None
     liquidationValue: Optional[float] = None
+
+
+class AccountInstrument(JSONSerializableBaseModel):
+    assetType: Optional[AssetType] = None
+    cusip: Optional[str] = None
+    description: Optional[str] = None
+    instrumentId: Optional[int] = None
+    symbol: Optional[str] = None
+    netChange: Optional[float] = None
+
+
+class AccountEquity(AccountInstrument):
+    assetType: AssetType = AssetType.EQUITY
+
+
+class AccountFixedIncome(AccountInstrument):
+    assetType: AssetType = AssetType.FIXED_INCOME
+    maturityDate: Optional[str] = None
+    factor: Optional[float] = None
+    variableRate: Optional[float] = None
+
+
+class AccountOption(AccountInstrument):
+    assetType: AssetType = AssetType.OPTION
+    optionDeliverables: Optional[Any] = None  # TODO
+    putCall: Optional[OptionContractType] = None
+    optionMultiplier: Optional[int] = None
+    type_: Optional[OptionType] = Field(None, alias="type")
+    underlyingSymbol: Optional[str] = None
+
+
+class OrderLegCollection(JSONSerializableBaseModel):
+    orderLegType: Optional[AssetType] = None
+    legId: Optional[int] = None
+    instrument: Optional[AccountInstrument] = None  # e.g. AccountOption
+    instruction: Optional[OrderLegInstruction] = None
+    positionEffect: Optional[PositionEffect] = None
+    quantity: Optional[float] = None
+    # quantityType: Optional[str] = None #TODO
+    # toSymbol: Optional[str] = None #TODO
 
 
 class Position(JSONSerializableBaseModel):
@@ -244,7 +318,7 @@ class Order(JSONSerializableBaseModel):
     priceLinkType: Optional[str] = None
     price: Optional[float] = None
     taxLotMethod: Optional[str] = None
-    orderLegCollection: List[Any] = []  # TODO: OrderLeg type
+    orderLegCollection: List[OrderLegCollection] = []  # TODO: OrderLeg type
     activationPrice: Optional[float] = None
     specialInstruction: Optional[str] = None  # TODO: enum this
     orderStrategyType: Optional[str] = None
