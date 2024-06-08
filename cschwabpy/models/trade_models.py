@@ -95,6 +95,14 @@ class Account(JSONSerializableBaseModel):
     currentBalances: Optional[MarginBalance] = None
     projectedBalances: Optional[MarginBalance] = None
 
+    @property
+    def is_margin(self) -> bool:
+        return self.type_ == AccountType.MARGIN
+
+    @property
+    def is_cash(self) -> bool:
+        return self.type_ == AccountType.CASH
+
 
 class MarginAccount(Account):
     type_: AccountType = Field(AccountType.MARGIN, alias="type")
