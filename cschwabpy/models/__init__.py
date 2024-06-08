@@ -177,7 +177,7 @@ class OptionContract(JSONSerializableBaseModel):
     def to_dataframe_row(self) -> List[Any]:
         result: List[Any] = [
             self.strikePrice,
-            self.symbol.strip().replace(" ", ""),
+            self.symbol,  # .strip().replace(" ", ""),
             self.lastPrice,
             self.openInterest,
             self.askPrice,
