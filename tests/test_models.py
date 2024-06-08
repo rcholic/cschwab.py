@@ -111,7 +111,7 @@ async def test_get_order(httpx_mock: HTTPXMock):
             http_client=client,
         )
         retrieved_orders = await cschwab_client.get_orders_async(
-            account_number=mock_account(),
+            account_number_hash=mock_account(),
             from_entered_time=from_entered_time,
             to_entered_time=to_entered_time,
             status=OrderStatus.FILLED,
@@ -142,7 +142,7 @@ async def test_get_single_account(httpx_mock: HTTPXMock):
             http_client=client,
         )
         single_account = await cschwab_client.get_single_account_async(
-            with_account_number=mock_account(), include_positions=True
+            with_account_number_hash=mock_account(), include_positions=True
         )
         assert single_account is not None
         assert single_account.accountNumber == "123"
