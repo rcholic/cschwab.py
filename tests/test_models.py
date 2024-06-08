@@ -11,7 +11,12 @@ from cschwabpy.models import (
     OptionContractType,
     OptionContractStrategy,
 )
-from cschwabpy.models.trade_models import SecuritiesAccount, MarginAccount, CashAccount
+from cschwabpy.models.trade_models import (
+    SecuritiesAccount,
+    MarginAccount,
+    CashAccount,
+    AccountType,
+)
 from cschwabpy.models.token import Tokens, LocalTokenStore
 from cschwabpy.SchwabAsyncClient import SchwabAsyncClient
 
@@ -67,6 +72,67 @@ def test_parsing_securities_account():
         assert securities_account.initialBalances is not None
 
     assert len(accounts) == 1
+
+
+@pytest.mark.asyncio
+async def test_get_single_account(httpx_mock: HTTPXMock):
+    json_mock = get_mock_response()["single_account"]
+    mocked_token = mock_tokens()
+    token_store = LocalTokenStore()
+    if os.path.exists(Path(token_store.token_output_path)):
+        os.remove(token_store.token_output_path)  # clean up before test
+
+    token_store.save_tokens(mocked_token)
+    symbol = "$SPX"
+    httpx_mock.add_response(json=json_mock)
+    async with httpx.AsyncClient() as client:
+        cschwab_client = SchwabAsyncClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            tokens=mocked_token,
+            http_client=client,
+        )
+        single_account = await cschwab_client.get_single_account_async(
+            with_account_number="123", include_positions=True
+        )
+        assert single_account is not None
+        assert single_account.accountNumber == "123"
+        assert single_account.type_ == AccountType.MARGIN
+        assert len(single_account.positions) == 1
+        assert single_account.is_margin
+
+
+@pytest.mark.asyncio
+async def test_get_securities_account(httpx_mock: HTTPXMock):
+    json_mock = get_mock_response()["securities_account"]  # single_account
+    mocked_token = mock_tokens()
+    token_store = LocalTokenStore()
+    if os.path.exists(Path(token_store.token_output_path)):
+        os.remove(token_store.token_output_path)  # clean up before test
+
+    token_store.save_tokens(mocked_token)
+    symbol = "$SPX"
+    httpx_mock.add_response(json=json_mock)
+    async with httpx.AsyncClient() as client:
+        cschwab_client = SchwabAsyncClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            tokens=mocked_token,
+            http_client=client,
+        )
+        securities_accounts = await cschwab_client.get_accounts_async(
+            include_positions=True
+        )
+
+        assert securities_accounts is not None
+        assert len(securities_accounts) == 1
+        assert securities_accounts[0].accountNumber == "123"
+        assert securities_accounts[0].type_ == AccountType.MARGIN
+        assert securities_accounts[0].type_ == AccountType.MARGIN
+        assert len(securities_accounts[0].positions) == 1
+        assert securities_accounts[0].is_margin
 
 
 @pytest.mark.asyncio

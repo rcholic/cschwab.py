@@ -6,7 +6,7 @@ from cschwabpy.models import (
     OptionExpiration,
     OptionExpirationChainResponse,
 )
-from cschwabpy.models.trade_models import AccountNumberModel
+from cschwabpy.models.trade_models import AccountNumberModel, SecuritiesAccount, Account
 from typing import Optional, List, Mapping
 from cschwabpy.costants import (
     SCHWAB_API_BASE_URL,
@@ -113,7 +113,6 @@ class SchwabAsyncClient(object):
                 url=target_url, params={}, headers=self.__auth_header()
             )
             json_res = response.json()
-            print("json_res: ", json_res)
             account_numbers: List[AccountNumberModel] = []
             for account_json in json_res:
                 account_numbers.append(AccountNumberModel(**account_json))
@@ -121,6 +120,56 @@ class SchwabAsyncClient(object):
         finally:
             if not self.__keep_client_alive:
                 await client.aclose()
+
+    async def get_accounts_async(
+        self, include_positions: bool = True, with_account_number: Optional[str] = None
+    ) -> List[Account]:
+        """get all accounts except a specific account_number is provided."""
+        await self._ensure_valid_access_token()
+        target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts"
+        if with_account_number is not None:
+            target_url = f"{target_url}/{with_account_number}"
+
+        if include_positions:
+            target_url = f"{target_url}?fields=positions"
+
+        client = httpx.AsyncClient() if self.__client is None else self.__client
+        try:
+            response = await client.get(
+                url=target_url, params={}, headers=self.__auth_header()
+            )
+            if response.status_code == 200:
+                json_res = response.json()
+                if with_account_number is None:
+                    accounts: List[SecuritiesAccount] = []
+                    for account_json in json_res:
+                        securities_account = SecuritiesAccount(
+                            **account_json
+                        ).securitiesAccount
+                        accounts.append(securities_account)
+                    return accounts
+                else:
+                    securities_account = SecuritiesAccount(**json_res).securitiesAccount
+                    return [securities_account]
+            else:
+                raise Exception(
+                    "Failed to get accounts. Status: ", response.status_code
+                )
+        finally:
+            if not self.__keep_client_alive:
+                await client.aclose()
+
+    async def get_single_account_async(
+        self, with_account_number: str, include_positions: bool = True
+    ) -> Optional[Account]:
+        """Convenience method to get a single account by account number."""
+        account = await self.get_accounts_async(
+            include_positions=include_positions, with_account_number=with_account_number
+        )
+        if account is None or len(account) == 0:
+            return None
+
+        return account[0]
 
     async def get_option_expirations_async(
         self, underlying_symbol: str
