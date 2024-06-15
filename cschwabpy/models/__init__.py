@@ -68,11 +68,11 @@ class QueryFilterBase(JSONSerializableBaseModel):
         return "&".join([f"{k}={v}" for k, v in query_dict.items() if v is not None])
 
 
-class ExpirationType(int, Enum):
-    M = 0
-    Q = 1
-    S = 2
-    W = 3
+class ExpirationType(str, Enum):
+    M = "M"
+    Q = "Q"
+    S = "S"
+    W = "W"
 
 
 class OptionExpiration(JSONSerializableBaseModel):
