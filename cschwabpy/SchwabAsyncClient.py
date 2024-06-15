@@ -203,7 +203,6 @@ class SchwabAsyncClient(object):
                 url=target_url, params={}, headers=self.__auth_header()
             )
             json_res = response.json()
-            print("json_res: ", json_res)
             instruments: List[AccountInstrument] = []
             if "instruments" in json_res:
                 for instrument in json_res["instruments"]:
