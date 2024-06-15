@@ -112,6 +112,7 @@ class Destination(str, Enum):
 # class OrderLegType(str, Enum):
 class AssetType(str, Enum):  # same as OrderLegType
     EQUITY = "EQUITY"
+    ETF = "ETF"
     OPTION = "OPTION"
     INDEX = "INDEX"
     MUTUAL_FUND = "MUTUAL_FUND"
@@ -214,6 +215,15 @@ class QuantityType(str, Enum):
     ALL_SHARES = "ALL_SHARES"
     DOLLARS = "DOLLARS"
     SHARES = "SHARES"
+
+
+class InstrumentProjection(str, Enum):
+    SymbolSearch = "symbol-search"
+    SymbolRegex = "symbol-regex"
+    DescSearch = "desc-search"
+    DescRegex = "desc-regex"
+    Search = "search"
+    Fundamental = "fundamental"
 
 
 # --------------------------------------------------

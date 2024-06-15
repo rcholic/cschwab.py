@@ -68,10 +68,17 @@ class QueryFilterBase(JSONSerializableBaseModel):
         return "&".join([f"{k}={v}" for k, v in query_dict.items() if v is not None])
 
 
+class ExpirationType(str, Enum):
+    M = "M"
+    Q = "Q"
+    S = "S"
+    W = "W"
+
+
 class OptionExpiration(JSONSerializableBaseModel):
     expirationDate: str
     daysToExpiration: Optional[int] = None
-    expirationType: Optional[str] = None
+    expirationType: Optional[ExpirationType] = None
     standard: Optional[bool] = None
 
 
@@ -174,10 +181,12 @@ class OptionContract(JSONSerializableBaseModel):
         validate_assignment=False, use_enum_values=True, populate_by_name=True
     )
 
-    def to_dataframe_row(self) -> List[Any]:
+    def to_dataframe_row(self, strip_space: bool = False) -> List[Any]:
+        """Converts the object to a list of values for a dataframe row, strip_space: stripping space in option symbol."""
+        symbol = self.symbol.strip().replace(" ", "") if strip_space else self.symbol
         result: List[Any] = [
             self.strikePrice,
-            self.symbol,  # .strip().replace(" ", ""),
+            symbol,
             self.lastPrice,
             self.openInterest,
             self.askPrice,
@@ -248,14 +257,21 @@ class OptionChain(JSONSerializableBaseModel):
         str, Mapping[str, List[OptionContract]]
     ]  # key: expiration:27 value:[strike: OptionContract]
 
-    def to_dataframe_pairs_by_expiration(self) -> List[OptionChainDataFrames]:
+    def to_dataframe_pairs_by_expiration(
+        self, strip_space: bool = False
+    ) -> List[OptionChainDataFrames]:
         """
         List of OptionChainDataFrames by expiration.
         Each OptionChainDataFrames object contains call and put chain in dataframe format.
+        @param strip_space: Whether strip spaces in option symbols.
         """
         results: List[OptionChainDataFrames] = []
-        call_map = self.break_down_option_map(self.callExpDateMap)
-        put_map = self.break_down_option_map(self.putExpDateMap)
+        call_map = self.break_down_option_map(
+            self.callExpDateMap, strip_space=strip_space
+        )
+        put_map = self.break_down_option_map(
+            self.putExpDateMap, strip_space=strip_space
+        )
         for expiration in call_map.keys():
             call_df = call_map[expiration]
             put_df = put_map[expiration]
@@ -271,8 +287,11 @@ class OptionChain(JSONSerializableBaseModel):
         return results
 
     def break_down_option_map(
-        self, optionExpMap: Mapping[str, Mapping[str, List[OptionContract]]]
+        self,
+        optionExpMap: Mapping[str, Mapping[str, List[OptionContract]]],
+        strip_space: bool = False,
     ) -> Mapping[str, pd.DataFrame]:
+        """Whether strip spaces in option symbols."""
         result: MutableMapping[str, pd.DataFrame] = {}
         for exp_date, strike_map in optionExpMap.items():
             expiration = exp_date.split(":")[0]
@@ -284,7 +303,7 @@ class OptionChain(JSONSerializableBaseModel):
             for strike_str, option_contracts in strike_map.items():
                 strike = float(strike_str)
                 for option_contract in option_contracts:
-                    row = option_contract.to_dataframe_row()
+                    row = option_contract.to_dataframe_row(strip_space=strip_space)
                     row.insert(0, self.underlying.mark)
                     all_rows.append(row)
 
