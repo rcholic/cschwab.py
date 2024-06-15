@@ -8,10 +8,12 @@ from cschwabpy.models import (
 )
 from cschwabpy.models.trade_models import (
     AccountNumberWithHashID,
+    AccountInstrument,
     SecuritiesAccount,
     Account,
     OrderStatus,
     Order,
+    InstrumentProjection,
 )
 import cschwabpy.util as util
 
@@ -186,6 +188,30 @@ class SchwabAsyncClient(object):
             return None
 
         return account[0]
+
+    async def get_instruments_async(
+        self,
+        symbol: str,
+        projection: InstrumentProjection = InstrumentProjection.Fundamental,
+    ) -> List[AccountInstrument]:
+        await self._ensure_valid_access_token()
+        target_url = f"{SCHWAB_MARKET_DATA_API_BASE_URL}/instruments?symbol={symbol}&projection={projection.value}"
+        client = httpx.AsyncClient() if self.__client is None else self.__client
+
+        try:
+            response = await client.get(
+                url=target_url, params={}, headers=self.__auth_header()
+            )
+            json_res = response.json()
+            print("json_res: ", json_res)
+            instruments: List[AccountInstrument] = []
+            if "instruments" in json_res:
+                for instrument in json_res["instruments"]:
+                    instruments.append(AccountInstrument(**instrument))
+            return instruments
+        finally:
+            if not self.__keep_client_alive:
+                await client.aclose()
 
     async def place_order_async(
         self, account_number_hash: AccountNumberWithHashID, order: Order
