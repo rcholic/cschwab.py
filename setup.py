@@ -5,7 +5,7 @@ with open("README.md") as file:
 
 setup(
     name="CSchwabPy",
-    version="0.0.8",
+    version="0.0.9",
     description="Charles Schwab Stock & Option Trade API Client for Python.",
     long_description=long_description,
     long_description_content_type="text/markdown",
