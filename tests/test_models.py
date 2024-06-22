@@ -218,6 +218,23 @@ async def test_get_securities_account(httpx_mock: HTTPXMock):
         assert len(securities_accounts[0].positions) == 1
         assert securities_accounts[0].is_margin
 
+    with httpx.Client() as client2:
+        cschwab_client2 = SchwabClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            http_client=client2,
+        )
+        securities_accounts2 = cschwab_client2.get_accounts(include_positions=True)
+
+        assert securities_accounts2 is not None
+        assert len(securities_accounts2) == 1
+        assert securities_accounts2[0].accountNumber == "123"
+        assert securities_accounts2[0].type_ == AccountType.MARGIN
+        assert securities_accounts2[0].type_ == AccountType.MARGIN
+        assert len(securities_accounts2[0].positions) == 1
+        assert securities_accounts2[0].is_margin
+
 
 @pytest.mark.asyncio
 async def test_download_option_chain(httpx_mock: HTTPXMock):
@@ -248,6 +265,31 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
         assert opt_chain_result.status == "SUCCESS"
 
         opt_df_pairs = opt_chain_result.to_dataframe_pairs_by_expiration()
+        assert opt_df_pairs is not None
+        for df in opt_df_pairs:
+            print(df.expiration)
+            print(
+                f"call dataframe size: {df.call_df.shape}. expiration: {df.expiration}"
+            )
+            print(f"put dataframe size: {df.put_df.shape}. expiration: {df.expiration}")
+            print(df.call_df.head(5))
+            print(df.put_df.head(5))
+
+    print("----------" * 5)
+    with httpx.Client() as client2:
+        cschwab_client2 = SchwabClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            http_client=client2,
+        )
+        opt_chain_result2 = cschwab_client2.download_option_chain(
+            underlying_symbol=symbol, from_date="2025-01-03", to_date="2025-01-03"
+        )
+        assert opt_chain_result2 is not None
+        assert opt_chain_result2.status == "SUCCESS"
+
+        opt_df_pairs = opt_chain_result2.to_dataframe_pairs_by_expiration()
         assert opt_df_pairs is not None
         for df in opt_df_pairs:
             print(df.expiration)
@@ -291,6 +333,23 @@ async def test_get_option_expirations(httpx_mock: HTTPXMock):
         assert opt_expirations_list[0].expirationType == "W"
         assert opt_expirations_list[0].standard
 
+    with httpx.Client() as client2:
+        cschwab_client2 = SchwabClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            http_client=client2,
+        )
+        opt_expirations_list2 = cschwab_client2.get_option_expirations(
+            underlying_symbol=symbol
+        )
+        assert opt_expirations_list2 is not None
+        assert len(opt_expirations_list2) > 0
+        assert opt_expirations_list2[0].expirationDate == "2022-01-07"
+        assert opt_expirations_list2[0].daysToExpiration == 2
+        assert opt_expirations_list2[0].expirationType == "W"
+        assert opt_expirations_list2[0].standard
+
 
 @pytest.mark.asyncio
 async def test_get_account_numbers(httpx_mock: HTTPXMock):
@@ -325,3 +384,21 @@ async def test_get_account_numbers(httpx_mock: HTTPXMock):
         assert account_numbers[0].hashValue == "hash1"
         assert account_numbers[1].accountNumber == "987654321"
         assert account_numbers[1].hashValue == "hash2"
+
+    with httpx.Client() as client2:
+        cschwab_client2 = SchwabClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            http_client=client2,
+        )
+        account_numbers2 = cschwab_client2.get_account_numbers()
+        # Assertions to verify the correctness of the API call
+        assert account_numbers2 is not None
+        assert (
+            len(account_numbers2) == 2
+        )  # Expecting 2 account numbers in the mock response
+        assert account_numbers2[0].accountNumber == "123456789"
+        assert account_numbers2[0].hashValue == "hash1"
+        assert account_numbers2[1].accountNumber == "987654321"
+        assert account_numbers2[1].hashValue == "hash2"
