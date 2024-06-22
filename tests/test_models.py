@@ -23,6 +23,7 @@ from cschwabpy.models.trade_models import (
 )
 from cschwabpy.models.token import Tokens, LocalTokenStore
 from cschwabpy.SchwabAsyncClient import SchwabAsyncClient
+from cschwabpy.SchwabClient import SchwabClient
 
 from .test_token import mock_tokens
 
@@ -121,6 +122,25 @@ async def test_get_order(httpx_mock: HTTPXMock):
         assert retrieved_orders[0].orderId == 456
         assert retrieved_orders[0].cancelable == False
 
+    with httpx.Client() as client2:
+        cschwab_client = SchwabClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            http_client=client2,
+        )
+
+        retrieved_orders2 = cschwab_client.get_orders(
+            account_number_hash=mock_account(),
+            from_entered_time=from_entered_time,
+            to_entered_time=to_entered_time,
+            status=OrderStatus.FILLED,
+        )
+        assert retrieved_orders2 is not None
+        assert len(retrieved_orders2) == 1
+        assert retrieved_orders2[0].orderId == 456
+        assert retrieved_orders2[0].cancelable == False
+
 
 @pytest.mark.asyncio
 async def test_get_single_account(httpx_mock: HTTPXMock):
@@ -134,14 +154,14 @@ async def test_get_single_account(httpx_mock: HTTPXMock):
     symbol = "$SPX"
     httpx_mock.add_response(json=json_mock)
     async with httpx.AsyncClient() as client:
-        cschwab_client = SchwabAsyncClient(
+        cschwab_client2 = SchwabAsyncClient(
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
             tokens=mocked_token,
             http_client=client,
         )
-        single_account = await cschwab_client.get_single_account_async(
+        single_account = await cschwab_client2.get_single_account_async(
             with_account_number_hash=mock_account(), include_positions=True
         )
         assert single_account is not None
@@ -149,6 +169,22 @@ async def test_get_single_account(httpx_mock: HTTPXMock):
         assert single_account.type_ == AccountType.MARGIN
         assert len(single_account.positions) == 1
         assert single_account.is_margin
+
+    with httpx.Client() as client2:
+        cschwab_client2 = SchwabClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            http_client=client2,
+        )
+        single_account2 = cschwab_client2.get_single_account(
+            with_account_number_hash=mock_account(), include_positions=True
+        )
+        assert single_account2 is not None
+        assert single_account2.accountNumber == "123"
+        assert single_account2.type_ == AccountType.MARGIN
+        assert len(single_account2.positions) == 1
+        assert single_account2.is_margin
 
 
 @pytest.mark.asyncio
