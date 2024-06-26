@@ -29,8 +29,45 @@ OptionChain_Headers = [
 class JSONSerializableBaseModel(BaseModel):
     model_config = ConfigDict(use_enum_values=True, populate_by_name=True)
 
-    def to_json(self) -> Mapping[str, Any]:
-        return self.model_dump(by_alias=True)
+    def to_json(self, drop_null_value: bool = True) -> Mapping[str, Any]:
+        """Converts the object to a JSON dictionary with options to drop null values from dictionary."""
+        super_json = self.model_dump(by_alias=True)
+        if not drop_null_value:
+            return super_json
+
+        result: MutableMapping[str, Any] = {}
+        for k, v in list(super_json.items()):
+            if v is not None:
+                result[k] = self.__handle_item(v)
+
+        return result
+
+    def __handle_item(self, item: Any) -> Any:
+        """Handle item in the dictionary, list or primitive values."""
+        if isinstance(item, dict):
+            return self.__del_none(item)
+        elif isinstance(item, List):
+            result = []
+            for itm in list(item):
+                result.append(self.__handle_item(itm))
+            return result
+        elif isinstance(item, set):
+            result = set()
+            for itm in set(item):
+                result.add(self.__handle_item(itm))
+            return
+        else:
+            return item
+
+    def __del_none(self, d: MutableMapping[str, Any]) -> MutableMapping[str, Any]:
+        """Recursively remove None values from a dictionary."""
+        for key, value in list(d.items()):
+            if value is None:
+                del d[key]
+            elif isinstance(value, MutableMapping):
+                d[key] = self.__del_none(value)
+
+        return d
 
 
 class ErrorMessage(JSONSerializableBaseModel):
@@ -181,7 +218,7 @@ class OptionContract(JSONSerializableBaseModel):
         validate_assignment=False, use_enum_values=True, populate_by_name=True
     )
 
-    def to_dataframe_row(self, strip_space: bool = False) -> List[Any]:
+    def to_dataframe_row(self, strip_space: bool = True) -> List[Any]:
         """Converts the object to a list of values for a dataframe row, strip_space: stripping space in option symbol."""
         symbol = self.symbol.strip().replace(" ", "") if strip_space else self.symbol
         result: List[Any] = [
