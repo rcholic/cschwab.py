@@ -236,6 +236,31 @@ class SchwabClient(object):
             if not self.__keep_client_alive:
                 client.close()
 
+    def get_order_by_id(
+        self,
+        account_number_hash: AccountNumberWithHashID,
+        order_id: int,
+    ) -> Optional[Order]:
+        """Get a specific order by order ID."""
+        self._ensure_valid_access_token()
+        target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts/{account_number_hash.hashValue}/orders/{order_id}"
+        client = httpx.Client() if self.__client is None else self.__client
+        try:
+            response = client.get(
+                url=target_url, params={}, headers=self.__auth_header()
+            )
+            if response.status_code == 200:
+                order_json = response.json()
+                return Order(**order_json)
+            elif response.status_code == 404:
+                # order not found
+                return None
+            else:
+                raise Exception("Failed to get order. Status: ", response.status_code)
+        finally:
+            if not self.__keep_client_alive:
+                client.close()
+
     def get_orders(
         self,
         account_number_hash: AccountNumberWithHashID,

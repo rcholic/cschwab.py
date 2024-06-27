@@ -233,6 +233,31 @@ class SchwabAsyncClient(object):
             if not self.__keep_client_alive:
                 await client.aclose()
 
+    async def get_order_by_id_async(
+        self,
+        account_number_hash: AccountNumberWithHashID,
+        order_id: int,
+    ) -> Optional[Order]:
+        """Get a specific order by order ID."""
+        await self._ensure_valid_access_token()
+        target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts/{account_number_hash.hashValue}/orders/{order_id}"
+        client = httpx.AsyncClient() if self.__client is None else self.__client
+        try:
+            response = await client.get(
+                url=target_url, params={}, headers=self.__auth_header()
+            )
+            if response.status_code == 200:
+                order_json = response.json()
+                return Order(**order_json)
+            elif response.status_code == 404:
+                # order not found
+                return None
+            else:
+                raise Exception("Failed to get order. Status: ", response.status_code)
+        finally:
+            if not self.__keep_client_alive:
+                await client.aclose()
+
     async def get_orders_async(
         self,
         account_number_hash: AccountNumberWithHashID,
@@ -241,6 +266,7 @@ class SchwabAsyncClient(object):
         max_count: int = 1000,
         status: Optional[OrderStatus] = None,
     ) -> List[Order]:
+        """Get orders for a specific account within a time range."""
         await self._ensure_valid_access_token()
         target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts/{account_number_hash.hashValue}/orders"
         target_url += f"?fromEnteredTime={util.to_iso8601_str(from_entered_time)}&toEnteredTime={util.to_iso8601_str(to_entered_time)}&maxResults={max_count}"
