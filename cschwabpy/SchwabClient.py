@@ -119,7 +119,6 @@ class SchwabClient(object):
 
     def get_account_numbers(self) -> List[AccountNumberWithHashID]:
         self._ensure_valid_access_token()
-        import json
 
         target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts/accountNumbers"
         client = httpx.Client() if self.__client is None else self.__client
@@ -224,11 +223,10 @@ class SchwabClient(object):
         try:
             _header = self.__auth_header()
             _header["Content-Type"] = "application/json"
-            print("order to place: ", json.dumps(order.to_json()))
             response = client.post(
                 url=target_url,
                 json=json.dumps(order.to_json()),
-                headers=self.__auth_header(),
+                headers=_header,
             )
             if response.status_code == 201:
                 return True

@@ -1,5 +1,5 @@
 from cschwabpy.models import JSONSerializableBaseModel, OptionContractType
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Mapping, MutableMapping
 from pydantic import Field
 from enum import Enum
 
@@ -289,11 +289,11 @@ class MarginInitialBalance(MarginBalance):
 
 class AccountInstrument(JSONSerializableBaseModel):
     assetType: Optional[AssetType] = None
-    cusip: Optional[str] = ""
-    description: Optional[str] = ""
-    instrumentId: Optional[int] = 0
+    cusip: Optional[str] = None
+    description: Optional[str] = None
+    instrumentId: Optional[int] = None
     symbol: Optional[str] = None
-    netChange: Optional[float] = 0
+    netChange: Optional[float] = None
 
 
 class AccountEquity(AccountInstrument):
@@ -331,12 +331,12 @@ class OrderLeg(JSONSerializableBaseModel):
 
 class OrderLegCollection(JSONSerializableBaseModel):
     orderLegType: Optional[AssetType] = None
-    legId: Optional[int] = 0
+    legId: Optional[int] = None
     instrument: Optional[AccountInstrument] = None  # e.g. AccountOption
     instruction: Optional[OrderLegInstruction] = None
     positionEffect: Optional[PositionEffect] = None
     quantity: Optional[float] = None
-    quantityType: Optional[QuantityType] = QuantityType.SHARES
+    quantityType: Optional[QuantityType] = None  # QuantityType.SHARES
     # toSymbol: Optional[str] = None #TODO
 
 
@@ -366,7 +366,7 @@ class Position(JSONSerializableBaseModel):
 class Account(JSONSerializableBaseModel):
     type_: Optional[AccountType] = Field(None, alias="type")
     accountNumber: str
-    roundTrips: Optional[int] = 0
+    roundTrips: Optional[int] = None
     isDayTrader: Optional[bool] = False
     isClosingOnlyRestricted: Optional[bool] = False
     pfcbFlag: Optional[bool] = False
@@ -415,38 +415,38 @@ class OrderActivity(JSONSerializableBaseModel):
 
 
 class Order(JSONSerializableBaseModel):
-    session: Optional[Session] = None
-    duration: Optional[Duration] = None
-    orderType: Optional[OrderType] = OrderType.LIMIT
+    session: Session
+    duration: Duration = Duration.DAY
+    orderType: OrderType = OrderType.LIMIT
     cancelTime: Optional[str] = None
     complexOrderStrategyType: Optional[ComplexOrderStrategyType] = None
-    quantity: Optional[float] = 0
-    filledQuantity: Optional[float] = 0
-    remainingQuantity: Optional[float] = 0
-    requestedDestination: Optional[Destination] = Destination.AUTO
+    quantity: Optional[float] = None
+    filledQuantity: Optional[float] = None
+    remainingQuantity: Optional[float] = None
+    requestedDestination: Optional[Destination] = None
     destinationLinkName: Optional[str] = "AUTO"
     releaseTime: Optional[str] = None
     stopPrice: Optional[float] = None
-    stopPriceLinkBasis: Optional[PriceLinkBasis] = PriceLinkBasis.AVERAGE
-    stopPriceLinkType: Optional[PriceLinkType] = PriceLinkType.VALUE
-    stopPriceOffset: Optional[float] = 0
-    stopType: Optional[StopType] = StopType.MARK
-    priceLinkBasis: Optional[PriceLinkBasis] = PriceLinkBasis.AVERAGE
-    priceLinkType: Optional[PriceLinkType] = PriceLinkType.VALUE
-    price: Optional[float] = None
-    taxLotMethod: Optional[TaxLotMethod] = TaxLotMethod.FIFO
+    stopPriceLinkBasis: Optional[PriceLinkBasis] = None
+    stopPriceLinkType: Optional[PriceLinkType] = None
+    stopPriceOffset: Optional[float] = None
+    stopType: Optional[StopType] = None
+    priceLinkBasis: Optional[PriceLinkBasis] = None
+    priceLinkType: Optional[PriceLinkType] = None
+    price: float
+    taxLotMethod: Optional[TaxLotMethod] = None
     orderLegCollection: List[OrderLegCollection] = []
-    activationPrice: Optional[float] = 0
-    specialInstruction: Optional[SpecialInstruction] = SpecialInstruction.ALL_OR_NONE
+    activationPrice: Optional[float] = None
+    specialInstruction: Optional[SpecialInstruction] = None
     orderStrategyType: Optional[OrderStrategyType] = OrderStrategyType.SINGLE
-    orderId: Optional[int] = 0
-    cancelable: Optional[bool] = False
-    editable: Optional[bool] = False
+    orderId: Optional[int] = None
+    cancelable: Optional[bool] = None
+    editable: Optional[bool] = None
     status: Optional[OrderStatus] = None
     enteredTime: Optional[str] = None
     closeTime: Optional[str] = None
-    tag: Optional[str] = ""
-    accountNumber: Optional[int] = 0  # or str ?
+    tag: Optional[str] = None
+    accountNumber: Optional[int] = None
     orderActivityCollection: List[OrderActivity] = []
     replacingOrderCollection: List[str] = []
     childOrderStrategies: List[str] = []

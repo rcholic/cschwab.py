@@ -117,7 +117,6 @@ class SchwabAsyncClient(object):
 
     async def get_account_numbers_async(self) -> List[AccountNumberWithHashID]:
         await self._ensure_valid_access_token()
-        import json
 
         target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts/accountNumbers"
         client = httpx.AsyncClient() if self.__client is None else self.__client
@@ -218,15 +217,13 @@ class SchwabAsyncClient(object):
         await self._ensure_valid_access_token()
         target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts/{account_number_hash.hashValue}/orders"
         client = httpx.AsyncClient() if self.__client is None else self.__client
-
         try:
             _header = self.__auth_header()
             _header["Content-Type"] = "application/json"
-            print("order to place: ", json.dumps(order.to_json()))
             response = await client.post(
                 url=target_url,
-                json=json.dumps(order.to_json()),
-                headers=self.__auth_header(),
+                data=json.dumps(order.to_json()),
+                headers=_header,
             )
             if response.status_code == 201:
                 return True
