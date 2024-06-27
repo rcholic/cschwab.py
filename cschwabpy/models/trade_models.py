@@ -452,3 +452,12 @@ class Order(JSONSerializableBaseModel):
     replacingOrderCollection: List[str] = []
     childOrderStrategies: List[str] = []
     statusDescription: Optional[str] = None
+
+
+class EquityOrder(Order):
+    quanity: float
+
+
+class OptionOrder(Order):
+    quantity: Optional[float] = None
+    complexOrderStrategyType: ComplexOrderStrategyType

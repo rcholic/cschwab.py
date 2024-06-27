@@ -12,8 +12,8 @@ This is a Python client library for accessing the Charles Schwab stock and optio
 - [X] Automated refreshing of access token
 - [x] Download option chain data
 - [x] Get account information
-- Place stock and option trades [Work in Progress]
-- Retrieve trade history [TODO]
+- [x] Place stock and option trades
+- Retrieve trade history [Work in Progress]
 - Monitor real-time market data [TODO]
 
 ## Installation
