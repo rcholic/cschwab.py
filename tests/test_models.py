@@ -143,6 +143,49 @@ async def test_get_order(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+async def test_get_order_by_id(httpx_mock: HTTPXMock):
+    json_mock = get_mock_response()["filled_order"]
+    mocked_token = mock_tokens()
+    token_store = LocalTokenStore()
+    if os.path.exists(Path(token_store.token_output_path)):
+        os.remove(token_store.token_output_path)  # clean up before test
+
+    token_store.save_tokens(mocked_token)
+    httpx_mock.add_response(json=json_mock)  # make it array type
+    order_id = 1000847830245
+
+    async with httpx.AsyncClient() as client:
+        cschwab_client = SchwabAsyncClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            tokens=mocked_token,
+            http_client=client,
+        )
+        retrieved_order = await cschwab_client.get_order_by_id_async(
+            account_number_hash=mock_account(),
+            order_id=order_id,
+        )
+        assert retrieved_order is not None
+        assert retrieved_order.orderId == order_id
+
+    with httpx.Client() as client2:
+        cschwab_client = SchwabClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            http_client=client2,
+        )
+
+        retrieved_order2 = cschwab_client.get_order_by_id(
+            account_number_hash=mock_account(),
+            order_id=order_id,
+        )
+        assert retrieved_order2 is not None
+        assert retrieved_order2.orderId == order_id
+
+
+@pytest.mark.asyncio
 async def test_get_single_account(httpx_mock: HTTPXMock):
     json_mock = get_mock_response()["single_account"]
     mocked_token = mock_tokens()

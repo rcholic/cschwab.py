@@ -209,6 +209,7 @@ class OrderActivityType(str, Enum):
 
 class ExecutionType(str, Enum):
     FILL = "FILL"
+    CANCELED = "CANCELED"
 
 
 class QuantityType(str, Enum):
