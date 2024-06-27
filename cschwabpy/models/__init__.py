@@ -55,7 +55,7 @@ class JSONSerializableBaseModel(BaseModel):
             result = set()
             for itm in set(item):
                 result.add(self.__handle_item(itm))
-            return
+            return result
         else:
             return item
 
