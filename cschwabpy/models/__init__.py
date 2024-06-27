@@ -218,7 +218,7 @@ class OptionContract(JSONSerializableBaseModel):
         validate_assignment=False, use_enum_values=True, populate_by_name=True
     )
 
-    def to_dataframe_row(self, strip_space: bool = True) -> List[Any]:
+    def to_dataframe_row(self, strip_space: bool = False) -> List[Any]:
         """Converts the object to a list of values for a dataframe row, strip_space: stripping space in option symbol."""
         symbol = self.symbol.strip().replace(" ", "") if strip_space else self.symbol
         result: List[Any] = [

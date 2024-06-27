@@ -415,12 +415,12 @@ class OrderActivity(JSONSerializableBaseModel):
 
 
 class Order(JSONSerializableBaseModel):
-    session: Optional[Session] = None
-    duration: Optional[Duration] = None
-    orderType: Optional[OrderType] = OrderType.LIMIT
+    session: Session
+    duration: Duration = Duration.DAY
+    orderType: OrderType = OrderType.LIMIT
     cancelTime: Optional[str] = None
     complexOrderStrategyType: Optional[ComplexOrderStrategyType] = None
-    quantity: float
+    quantity: Optional[float] = None
     filledQuantity: Optional[float] = None
     remainingQuantity: Optional[float] = None
     requestedDestination: Optional[Destination] = None
@@ -433,7 +433,7 @@ class Order(JSONSerializableBaseModel):
     stopType: Optional[StopType] = None
     priceLinkBasis: Optional[PriceLinkBasis] = None
     priceLinkType: Optional[PriceLinkType] = None
-    price: Optional[float] = None
+    price: float
     taxLotMethod: Optional[TaxLotMethod] = None
     orderLegCollection: List[OrderLegCollection] = []
     activationPrice: Optional[float] = None
