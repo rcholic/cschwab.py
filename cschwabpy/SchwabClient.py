@@ -32,6 +32,8 @@ import re
 import base64
 import json
 
+HEADER_ORDER_ID_PATTERN = re.compile(r"orders/(\d+)")
+
 
 class SchwabClient(object):
     """This is regular sync client. For async client, use SchwabClientAsync."""
@@ -215,7 +217,7 @@ class SchwabClient(object):
 
     def place_order(
         self, account_number_hash: AccountNumberWithHashID, order: Order
-    ) -> bool:
+    ) -> int:
         self._ensure_valid_access_token()
         target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts/{account_number_hash.hashValue}/orders"
         client = httpx.Client() if self.__client is None else self.__client
@@ -229,9 +231,15 @@ class SchwabClient(object):
                 headers=_header,
             )
             if response.status_code == 201:
-                return True
-            else:
-                raise Exception("Failed to place order. Status: ", response.status_code)
+                location_url = response.headers.get("Location")
+                if location_url is not None:
+                    needle = re.search(HEADER_ORDER_ID_PATTERN, location_url)
+                    if needle:
+                        return int(needle.group(1))
+                    else:
+                        raise Exception("Failed to locate order ID in response")
+
+            raise Exception("Failed to place order. Status: ", response.status_code)
         finally:
             if not self.__keep_client_alive:
                 client.close()
