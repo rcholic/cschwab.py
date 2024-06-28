@@ -215,6 +215,23 @@ class SchwabClient(object):
             if not self.__keep_client_alive:
                 client.close()
 
+    def cancel_order(
+        self, account_number_hash: AccountNumberWithHashID, order_id: int
+    ) -> bool:
+        """Cancel an order by order ID."""
+        self._ensure_valid_access_token()
+        target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts/{account_number_hash.hashValue}/orders/{order_id}"
+        client = httpx.Client() if self.__client is None else self.__client
+        try:
+            response = client.delete(
+                url=target_url, params={}, headers=self.__auth_header()
+            )
+
+            return response.status_code == 200
+        finally:
+            if not self.__keep_client_alive:
+                client.close()
+
     def place_order(
         self, account_number_hash: AccountNumberWithHashID, order: Order
     ) -> int:

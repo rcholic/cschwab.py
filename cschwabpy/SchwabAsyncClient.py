@@ -213,6 +213,23 @@ class SchwabAsyncClient(object):
             if not self.__keep_client_alive:
                 await client.aclose()
 
+    async def cancel_order_async(
+        self, account_number_hash: AccountNumberWithHashID, order_id: int
+    ) -> bool:
+        """Cancel an order by order ID."""
+        await self._ensure_valid_access_token()
+        target_url = f"{SCHWAB_TRADER_API_BASE_URL}/accounts/{account_number_hash.hashValue}/orders/{order_id}"
+        client = httpx.AsyncClient() if self.__client is None else self.__client
+        try:
+            response = await client.delete(
+                url=target_url, params={}, headers=self.__auth_header()
+            )
+
+            return response.status_code == 200
+        finally:
+            if not self.__keep_client_alive:
+                await client.aclose()
+
     async def place_order_async(
         self, account_number_hash: AccountNumberWithHashID, order: Order
     ) -> int:
