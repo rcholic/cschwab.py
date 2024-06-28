@@ -13,13 +13,26 @@ from cschwabpy.models import (
     OptionContractStrategy,
 )
 from cschwabpy.models.trade_models import (
-    SecuritiesAccount,
     AccountNumberWithHashID,
-    MarginAccount,
-    CashAccount,
-    AccountType,
     Order,
+    ExecutionLeg,
+    ExecutionType,
+    OrderLeg,
+    PositionEffect,
+    OrderLegInstruction,
+    AssetType,
+    OrderLegCollection,
+    AccountInstrument,
+    OrderActivity,
+    ComplexOrderStrategyType,
+    Session,
+    Duration,
+    OrderType,
     OrderStatus,
+    OrderStrategyType,
+    InstrumentProjection,
+    AccountType,
+    SecuritiesAccount,
 )
 from cschwabpy.models.token import Tokens, LocalTokenStore
 from cschwabpy.SchwabAsyncClient import SchwabAsyncClient
@@ -140,6 +153,85 @@ async def test_get_order(httpx_mock: HTTPXMock):
         assert len(retrieved_orders2) == 1
         assert retrieved_orders2[0].orderId == 456
         assert retrieved_orders2[0].cancelable == False
+
+
+@pytest.mark.asyncio
+async def test_place_order(httpx_mock: HTTPXMock):
+    mocked_token = mock_tokens()
+    token_store = LocalTokenStore()
+    if os.path.exists(Path(token_store.token_output_path)):
+        os.remove(token_store.token_output_path)  # clean up before test
+
+    opt_order1 = Order(
+        session=Session.NORMAL,
+        duration=Duration.GOOD_TILL_CANCEL,
+        orderType=OrderType.NET_DEBIT,
+        complexOrderStrategyType=ComplexOrderStrategyType.BUTTERFLY,
+        price=0.9,
+        orderLegCollection=[
+            OrderLegCollection(
+                orderLegType=AssetType.OPTION,
+                instrument=AccountInstrument(
+                    assetType=AssetType.OPTION, symbol="SPXW  240701C05530000"
+                ),
+                instruction=OrderLegInstruction.BUY_TO_OPEN,
+                positionEffect=PositionEffect.OPENING,
+                quantity=1,
+            ),
+            OrderLegCollection(
+                orderLegType=AssetType.OPTION,
+                instrument=AccountInstrument(
+                    assetType=AssetType.OPTION, symbol="SPXW  240701C05540000"
+                ),
+                instruction=OrderLegInstruction.SELL_TO_OPEN,
+                positionEffect=PositionEffect.OPENING,
+                quantity=2,
+            ),
+            OrderLegCollection(
+                orderLegType=AssetType.OPTION,
+                instrument=AccountInstrument(
+                    assetType=AssetType.OPTION, symbol="SPXW  240701C05550000"
+                ),
+                instruction=OrderLegInstruction.BUY_TO_OPEN,
+                positionEffect=PositionEffect.OPENING,
+                quantity=1,
+            ),
+        ],
+    )
+
+    order_id = 1000847830245
+    token_store.save_tokens(mocked_token)
+    location_url = (
+        f"https://api.schwabapi.com/trader/v1/accounts/HASHHERE/orders/{order_id}"
+    )
+    headers = {"Location": location_url}
+    httpx_mock.add_response(headers=headers, status_code=201)
+    async with httpx.AsyncClient() as client:
+        cschwab_client = SchwabAsyncClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            tokens=mocked_token,
+            http_client=client,
+        )
+        new_order_id = await cschwab_client.place_order_async(
+            account_number_hash=mock_account(), order=opt_order1
+        )
+        assert new_order_id == order_id
+
+    with httpx.Client() as client2:
+        cschwab_client = SchwabClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            http_client=client2,
+        )
+
+        new_order_id2 = cschwab_client.place_order(
+            account_number_hash=mock_account(),
+            order=opt_order1,
+        )
+        assert new_order_id2 == order_id
 
 
 @pytest.mark.asyncio
