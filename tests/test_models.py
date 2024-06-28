@@ -235,6 +235,44 @@ async def test_place_order(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+async def test_cancel_order(httpx_mock: HTTPXMock):
+    mocked_token = mock_tokens()
+    token_store = LocalTokenStore()
+    if os.path.exists(Path(token_store.token_output_path)):
+        os.remove(token_store.token_output_path)  # clean up before test
+
+    order_id = 1000847830245
+    token_store.save_tokens(mocked_token)
+    httpx_mock.add_response(status_code=200)
+    async with httpx.AsyncClient() as client:
+        cschwab_client = SchwabAsyncClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            tokens=mocked_token,
+            http_client=client,
+        )
+        is_canceled = await cschwab_client.cancel_order_async(
+            account_number_hash=mock_account(), order_id=order_id
+        )
+        assert is_canceled
+
+    with httpx.Client() as client2:
+        cschwab_client = SchwabClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            http_client=client2,
+        )
+
+        is_canceled2 = cschwab_client.cancel_order(
+            account_number_hash=mock_account(),
+            order_id=order_id,
+        )
+        assert is_canceled2
+
+
+@pytest.mark.asyncio
 async def test_get_order_by_id(httpx_mock: HTTPXMock):
     json_mock = get_mock_response()["filled_order"]
     mocked_token = mock_tokens()
