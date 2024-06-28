@@ -41,6 +41,7 @@ from cschwabpy.SchwabClient import SchwabClient
 from .test_token import mock_tokens
 
 mock_file_name = "mock_schwab_api_resp.json"
+token_store = LocalTokenStore(json_file_name="test_tokens.json")
 
 
 def mock_account() -> AccountNumberWithHashID:
@@ -108,7 +109,7 @@ def test_parsing_order():
 async def test_get_order(httpx_mock: HTTPXMock):
     json_mock = get_mock_response()["single_order"]
     mocked_token = mock_tokens()
-    token_store = LocalTokenStore()
+
     if os.path.exists(Path(token_store.token_output_path)):
         os.remove(token_store.token_output_path)  # clean up before test
 
@@ -158,7 +159,6 @@ async def test_get_order(httpx_mock: HTTPXMock):
 @pytest.mark.asyncio
 async def test_place_order(httpx_mock: HTTPXMock):
     mocked_token = mock_tokens()
-    token_store = LocalTokenStore()
     if os.path.exists(Path(token_store.token_output_path)):
         os.remove(token_store.token_output_path)  # clean up before test
 
@@ -237,7 +237,6 @@ async def test_place_order(httpx_mock: HTTPXMock):
 @pytest.mark.asyncio
 async def test_cancel_order(httpx_mock: HTTPXMock):
     mocked_token = mock_tokens()
-    token_store = LocalTokenStore()
     if os.path.exists(Path(token_store.token_output_path)):
         os.remove(token_store.token_output_path)  # clean up before test
 
@@ -276,7 +275,7 @@ async def test_cancel_order(httpx_mock: HTTPXMock):
 async def test_get_order_by_id(httpx_mock: HTTPXMock):
     json_mock = get_mock_response()["filled_order"]
     mocked_token = mock_tokens()
-    token_store = LocalTokenStore()
+
     if os.path.exists(Path(token_store.token_output_path)):
         os.remove(token_store.token_output_path)  # clean up before test
 
@@ -319,7 +318,7 @@ async def test_get_order_by_id(httpx_mock: HTTPXMock):
 async def test_get_single_account(httpx_mock: HTTPXMock):
     json_mock = get_mock_response()["single_account"]
     mocked_token = mock_tokens()
-    token_store = LocalTokenStore()
+
     if os.path.exists(Path(token_store.token_output_path)):
         os.remove(token_store.token_output_path)  # clean up before test
 
@@ -364,7 +363,7 @@ async def test_get_single_account(httpx_mock: HTTPXMock):
 async def test_get_securities_account(httpx_mock: HTTPXMock):
     json_mock = get_mock_response()["securities_account"]  # single_account
     mocked_token = mock_tokens()
-    token_store = LocalTokenStore()
+
     if os.path.exists(Path(token_store.token_output_path)):
         os.remove(token_store.token_output_path)  # clean up before test
 
@@ -413,7 +412,7 @@ async def test_get_securities_account(httpx_mock: HTTPXMock):
 async def test_download_option_chain(httpx_mock: HTTPXMock):
     mock_option_chain_resp = get_mock_response()
     mocked_token = mock_tokens()
-    token_store = LocalTokenStore()
+
     if os.path.exists(Path(token_store.token_output_path)):
         os.remove(token_store.token_output_path)  # clean up before test
 
@@ -478,7 +477,7 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
 async def test_get_option_expirations(httpx_mock: HTTPXMock):
     mock_option_chain_resp = get_mock_response()
     mocked_token = mock_tokens()
-    token_store = LocalTokenStore()
+
     if os.path.exists(Path(token_store.token_output_path)):
         os.remove(token_store.token_output_path)  # clean up before test
 
@@ -529,7 +528,7 @@ async def test_get_account_numbers(httpx_mock: HTTPXMock):
     # Mock response for account numbers API
     mock_data = get_mock_response()
     mocked_token = mock_tokens()
-    token_store = LocalTokenStore()
+
     token_store.save_tokens(mocked_token)
     if os.path.exists(Path(token_store.token_output_path)):
         os.remove(token_store.token_output_path)  # clean up before test
