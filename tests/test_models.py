@@ -483,6 +483,7 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
 
     if os.path.exists(Path(token_store.token_output_path)):
         os.remove(token_store.token_output_path)  # clean up before test
+    token_store.save_tokens(tokens=mocked_token)
 
     mock_response = {
         **mock_option_chain_resp["option_chain_resp"],
@@ -521,7 +522,6 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
-            tokens=mocked_token,
             http_client=client2,
         )
         opt_chain_result2 = cschwab_client2.download_option_chain(
