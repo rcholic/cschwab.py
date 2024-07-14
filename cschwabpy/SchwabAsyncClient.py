@@ -380,7 +380,6 @@ class SchwabAsyncClient(object):
                 url=target_url, params={}, headers=self.__auth_header()
             )
             json_res = response.json()
-            print("json_res: ", json_res)
             return OptionChain(**json_res)
         finally:
             if not self.__keep_client_alive:
