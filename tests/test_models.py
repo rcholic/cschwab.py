@@ -38,7 +38,7 @@ from cschwabpy.models.trade_models import (
     AccountType,
     SecuritiesAccount,
 )
-from cschwabpy.models.token import Tokens, LocalTokenStore
+from cschwabpy.models.token import Tokens, LocalTokenStore, AsyncLocalTokenStore
 from cschwabpy.SchwabAsyncClient import SchwabAsyncClient
 from cschwabpy.SchwabClient import SchwabClient
 
@@ -46,6 +46,7 @@ from .test_token import mock_tokens
 
 mock_file_name = "mock_schwab_api_resp.json"
 token_store = LocalTokenStore(json_file_name="test_tokens.json")
+async_token_store = AsyncLocalTokenStore(json_file_name="test_tokens_async.json")
 
 
 def mock_account() -> AccountNumberWithHashID:
@@ -97,7 +98,7 @@ async def test_market_hours(httpx_mock: HTTPXMock) -> None:
         cschwab_client = SchwabAsyncClient(
             app_client_id="fake_id",
             app_secret="fake_secret",
-            token_store=token_store,
+            token_store=async_token_store,
             tokens=mocked_token,
             http_client=client,
         )
@@ -182,7 +183,7 @@ async def test_get_order(httpx_mock: HTTPXMock):
         cschwab_client = SchwabAsyncClient(
             app_client_id="fake_id",
             app_secret="fake_secret",
-            token_store=token_store,
+            token_store=async_token_store,
             tokens=mocked_token,
             http_client=client,
         )
@@ -202,6 +203,7 @@ async def test_get_order(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
 
@@ -271,7 +273,7 @@ async def test_place_order(httpx_mock: HTTPXMock):
         cschwab_client = SchwabAsyncClient(
             app_client_id="fake_id",
             app_secret="fake_secret",
-            token_store=token_store,
+            token_store=async_token_store,
             tokens=mocked_token,
             http_client=client,
         )
@@ -285,6 +287,7 @@ async def test_place_order(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
 
@@ -308,7 +311,7 @@ async def test_cancel_order(httpx_mock: HTTPXMock):
         cschwab_client = SchwabAsyncClient(
             app_client_id="fake_id",
             app_secret="fake_secret",
-            token_store=token_store,
+            token_store=async_token_store,
             tokens=mocked_token,
             http_client=client,
         )
@@ -322,6 +325,7 @@ async def test_cancel_order(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
 
@@ -348,7 +352,7 @@ async def test_get_order_by_id(httpx_mock: HTTPXMock):
         cschwab_client = SchwabAsyncClient(
             app_client_id="fake_id",
             app_secret="fake_secret",
-            token_store=token_store,
+            token_store=async_token_store,
             tokens=mocked_token,
             http_client=client,
         )
@@ -364,6 +368,7 @@ async def test_get_order_by_id(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
 
@@ -390,7 +395,7 @@ async def test_get_single_account(httpx_mock: HTTPXMock):
         cschwab_client2 = SchwabAsyncClient(
             app_client_id="fake_id",
             app_secret="fake_secret",
-            token_store=token_store,
+            token_store=async_token_store,
             tokens=mocked_token,
             http_client=client,
         )
@@ -408,6 +413,7 @@ async def test_get_single_account(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
         single_account2 = cschwab_client2.get_single_account(
@@ -435,7 +441,7 @@ async def test_get_securities_account(httpx_mock: HTTPXMock):
         cschwab_client = SchwabAsyncClient(
             app_client_id="fake_id",
             app_secret="fake_secret",
-            token_store=token_store,
+            token_store=async_token_store,
             tokens=mocked_token,
             http_client=client,
         )
@@ -456,6 +462,7 @@ async def test_get_securities_account(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
         securities_accounts2 = cschwab_client2.get_accounts(include_positions=True)
@@ -476,6 +483,7 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
 
     if os.path.exists(Path(token_store.token_output_path)):
         os.remove(token_store.token_output_path)  # clean up before test
+    token_store.save_tokens(tokens=mocked_token)
 
     mock_response = {
         **mock_option_chain_resp["option_chain_resp"],
@@ -487,7 +495,7 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
         cschwab_client = SchwabAsyncClient(
             app_client_id="fake_id",
             app_secret="fake_secret",
-            token_store=token_store,
+            token_store=async_token_store,
             tokens=mocked_token,
             http_client=client,
         )
@@ -552,7 +560,7 @@ async def test_get_option_expirations(httpx_mock: HTTPXMock):
         cschwab_client = SchwabAsyncClient(
             app_client_id="fake_id",
             app_secret="fake_secret",
-            token_store=token_store,
+            token_store=async_token_store,
             tokens=mocked_token,
             http_client=client,
         )
@@ -571,6 +579,7 @@ async def test_get_option_expirations(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
         opt_expirations_list2 = cschwab_client2.get_option_expirations(
@@ -602,7 +611,7 @@ async def test_get_account_numbers(httpx_mock: HTTPXMock):
         cschwab_client = SchwabAsyncClient(
             app_client_id="fake_id",
             app_secret="fake_secret",
-            token_store=token_store,
+            token_store=async_token_store,
             tokens=mocked_token,
             http_client=client,
         )
@@ -623,6 +632,7 @@ async def test_get_account_numbers(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
         account_numbers2 = cschwab_client2.get_account_numbers()

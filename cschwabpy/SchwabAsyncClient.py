@@ -1,4 +1,4 @@
-from cschwabpy.models.token import Tokens, ITokenStore, LocalTokenStore
+from cschwabpy.models.token import Tokens, IAsyncTokenStore, AsyncLocalTokenStore
 from cschwabpy.models import (
     OptionChainQueryFilter,
     OptionContractType,
@@ -28,7 +28,7 @@ from cschwabpy.costants import (
     SCHWAB_AUTH_PATH,
     SCHWAB_TOKEN_PATH,
 )
-
+import backoff
 import httpx
 import re
 import base64
@@ -42,7 +42,7 @@ class SchwabAsyncClient(object):
         self,
         app_client_id: str,
         app_secret: str,
-        token_store: ITokenStore = LocalTokenStore(),
+        token_store: IAsyncTokenStore = AsyncLocalTokenStore(),
         tokens: Optional[Tokens] = None,
         http_client: Optional[httpx.AsyncClient] = None,
     ) -> None:
@@ -51,28 +51,23 @@ class SchwabAsyncClient(object):
         self.__token_store = token_store
         self.__client = http_client
         self.__keep_client_alive = http_client is not None
-        if (
-            tokens is not None
-            and tokens.is_access_token_valid
-            and tokens.is_refresh_token_valid
-        ):
-            token_store.save_tokens(tokens)
-
-        self.__tokens = token_store.get_tokens()
+        self.__tokens = tokens
 
     @property
     def token_url(self) -> str:
         return f"{SCHWAB_API_BASE_URL}/{SCHWAB_TOKEN_PATH}"
 
+    @backoff.on_exception(backoff.expo, Exception, max_tries=3, max_time=10)
     async def _ensure_valid_access_token(self, force_refresh: bool = False) -> bool:
+        if self.__tokens is None:
+            self.__tokens = await self.__token_store.get_tokens()
+
         if self.__tokens is None:
             raise Exception(
                 "Tokens are not available. Please use get_tokens_manually() to get tokens first."
             )
-
         if self.__tokens.is_access_token_valid and not force_refresh:
             return True
-
         client = httpx.AsyncClient() if self.__client is None else self.__client
         try:
             key_sec_encoded = self.__encode_app_key_secret()
@@ -91,7 +86,7 @@ class SchwabAsyncClient(object):
             if response.status_code == 200:
                 json_res = response.json()
                 tokens = Tokens(**json_res)
-                self.__token_store.save_tokens(tokens)
+                await self.__token_store.save_tokens(tokens)
                 return True
             else:
                 raise Exception(
@@ -385,67 +380,8 @@ class SchwabAsyncClient(object):
                 url=target_url, params={}, headers=self.__auth_header()
             )
             json_res = response.json()
+            print("json_res: ", json_res)
             return OptionChain(**json_res)
         finally:
             if not self.__keep_client_alive:
                 await client.aclose()
-
-    def get_tokens_manually(
-        self,
-    ) -> None:
-        """Manual steps to get tokens from Charles Schwab API."""
-        from prompt_toolkit import prompt
-        import urllib.parse as url_parser
-
-        redirect_uri = prompt("Enter your redirect uri> ").strip()
-        complete_auth_url = f"{SCHWAB_API_BASE_URL}/{SCHWAB_AUTH_PATH}?response_type=code&client_id={self.__client_id}&redirect_uri={redirect_uri}"
-        print(
-            f"Copy and open the following URL in browser. Complete Login & Authorization:\n {complete_auth_url}"
-        )
-        auth_code_response_url = prompt(
-            "Paste the entire authorization response URL here> "
-        ).strip()
-
-        auth_code = ""
-        try:
-            auth_code_pattern = re.compile(r"code=(.+)&?")
-            d = re.search(auth_code_pattern, auth_code_response_url)
-            if d:
-                auth_code = d.group(1)
-                auth_code = url_parser.unquote(auth_code.split("&")[0])
-            else:
-                raise Exception(
-                    "authorization response url does not contain authorization code"
-                )
-
-            if len(auth_code) == 0:
-                raise Exception("authorization code is empty")
-        except Exception as ex:
-            raise Exception(
-                "Failed to get authorization code. Please try again. Exception: ", ex
-            )
-
-        key_sec_encoded = self.__encode_app_key_secret()
-        with httpx.Client() as client:
-            response = client.post(
-                url=self.token_url,
-                headers={
-                    "Authorization": f"Basic {key_sec_encoded}",
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                data={
-                    "grant_type": "authorization_code",
-                    "code": auth_code,
-                    "redirect_uri": redirect_uri,
-                },
-            )
-
-            if response.status_code == 200:
-                json_res = response.json()
-                tokens = Tokens(**json_res)
-                self.__token_store.save_tokens(tokens)
-                print(
-                    f"Tokens saved successfully at path: {self.__token_store.token_file_path}"
-                )
-            else:
-                print("Failed to get tokens. Please try again.")

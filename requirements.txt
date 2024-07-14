@@ -1,3 +1,5 @@
+aiofiles
+backoff
 httpx
 pytest
 pytest-httpx
