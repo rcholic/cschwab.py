@@ -12,7 +12,7 @@ from cschwabpy.models import (
     OptionContractType,
     OptionContractStrategy,
     MarketHours,
-    AllMarket,
+    MarketHourInfo,
     OptionMarket,
     EquityMarket,
 )
@@ -67,7 +67,8 @@ def get_mock_response(
         return json_dict
 
 
-def test_market_hours() -> None:
+@pytest.mark.asyncio
+async def test_market_hours(httpx_mock: HTTPXMock) -> None:
     market_hours_json = {
         "start": "2022-04-14T09:30:00-04:00",
         "end": "2022-04-14T16:00:00-04:00",
@@ -79,12 +80,48 @@ def test_market_hours() -> None:
     assert market_hour.start.day == 14
 
     all_market_json = get_mock_response()["all_market_resp"]
-    print("all_market_json: ", all_market_json)
-    all_market = AllMarket(**all_market_json)
+
+    all_market = MarketHourInfo(**all_market_json)
     assert all_market is not None
     assert all_market.equity is not None
     assert all_market.equity.EQ.sessionHours.regularMarket is not None
     assert all_market.equity.EQ.sessionHours.preMarket is not None
+
+    mocked_token = mock_tokens()
+    mock_response = {
+        **all_market_json,
+        **(mocked_token.to_json()),
+    }
+    httpx_mock.add_response(json=mock_response)
+    async with httpx.AsyncClient() as client:
+        cschwab_client = SchwabAsyncClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            tokens=mocked_token,
+            http_client=client,
+        )
+        market_info = await cschwab_client.get_market_hour_info_async()
+        assert market_info is not None
+        assert market_info.equity is not None
+        assert market_info.equity.EQ.sessionHours.regularMarket is not None
+        assert market_info.is_equity_market_open is True
+        assert market_info.is_option_market_open is True
+
+    with httpx.Client() as client2:
+        cschwab_client2 = SchwabClient(
+            app_client_id="fake_id",
+            app_secret="fake_secret",
+            token_store=token_store,
+            tokens=mocked_token,
+            http_client=client2,
+        )
+        market_info2 = cschwab_client2.get_market_hour_info()
+        assert market_info2 is not None
+        assert market_info2.equity is not None
+        assert market_info2.equity.EQ.sessionHours.regularMarket is not None
+        assert market_info2.is_equity_market_open is True
+        assert market_info2.is_option_market_open is True
 
 
 def test_option_chain_parsing() -> None:

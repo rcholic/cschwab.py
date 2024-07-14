@@ -5,6 +5,8 @@ from cschwabpy.models import (
     OptionChain,
     OptionExpiration,
     OptionExpirationChainResponse,
+    MarketType,
+    MarketHourInfo,
 )
 from cschwabpy.models.trade_models import (
     AccountNumberWithHashID,
@@ -17,7 +19,7 @@ from cschwabpy.models.trade_models import (
 )
 import cschwabpy.util as util
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from typing import Optional, List, Mapping
 from cschwabpy.costants import (
     SCHWAB_API_BASE_URL,
@@ -330,6 +332,30 @@ class SchwabAsyncClient(object):
             json_res = response.json()
             expiration_resp = OptionExpirationChainResponse(**json_res)
             return expiration_resp.expirationList
+        finally:
+            if not self.__keep_client_alive:
+                await client.aclose()
+
+    async def get_market_hour_info_async(
+        self, market_type: Optional[MarketType] = None, on_date: Optional[date] = None
+    ) -> MarketHourInfo:
+
+        await self._ensure_valid_access_token()
+        target_url = f"{SCHWAB_MARKET_DATA_API_BASE_URL}/markets"
+
+        if market_type is not None:
+            target_url += f"/{market_type.value.lower()}"
+
+        if on_date is not None:
+            target_url += f"?date={util.date_to_str(on_date)}"
+
+        client = httpx.AsyncClient() if self.__client is None else self.__client
+        try:
+            response = await client.get(
+                url=target_url, params={}, headers=self.__auth_header()
+            )
+            json_res = response.json()
+            return MarketHourInfo(**json_res)
         finally:
             if not self.__keep_client_alive:
                 await client.aclose()

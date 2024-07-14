@@ -163,6 +163,9 @@ class MarketType(str, Enum):
     Future = "FUTURE"
     Bond = "BOND"
     Forex = "FOREX"
+    FutureOption = "FUTURE_OPTION"
+    Index = "INDEX"
+    MutualFund = "MUTUAL_FUND"
 
 
 class MarketHours(JSONSerializableBaseModel):
@@ -196,9 +199,23 @@ class OptionMarket(JSONSerializableBaseModel):
     IND: Market
 
 
-class AllMarket(JSONSerializableBaseModel):
-    equity: EquityMarket
-    option: OptionMarket
+class MarketHourInfo(JSONSerializableBaseModel):
+    equity: Optional[EquityMarket] = None
+    option: Optional[OptionMarket] = None
+
+    @property
+    def is_equity_market_open(self) -> Optional[bool]:
+        if self.equity is None:
+            return None
+
+        return self.equity.EQ.isOpen
+
+    @property
+    def is_option_market_open(self) -> Optional[bool]:
+        if self.option is None:
+            return None
+
+        return self.option.EQO.isOpen or self.option.IND.isOpen
 
 
 class OptionChainQueryFilter(QueryFilterBase):
