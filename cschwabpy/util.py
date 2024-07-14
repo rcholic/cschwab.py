@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 import pytz
 from typing import Optional
 
@@ -45,3 +45,7 @@ def to_iso8601_str(dt: datetime) -> str:
 def today_str(tz: pytz.BaseTzInfo = eastern_tz) -> str:  # type: ignore
     """Today in string. Returns Y-m-d."""  # noqa: DAR201
     return now(tz=tz).strftime(YMD_FMT)
+
+
+def date_to_str(date: date, date_format: str = YMD_FMT) -> str:
+    return date.strftime(date_format)

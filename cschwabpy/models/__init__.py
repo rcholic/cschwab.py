@@ -1,5 +1,5 @@
 """models folder."""
-from datetime import datetime
+from datetime import datetime, date
 from dataclasses import dataclass
 from pydantic import BaseModel, ConfigDict, Field
 from typing import MutableMapping, Mapping, MutableSet, Any, List, Optional
@@ -155,6 +155,67 @@ class OptionContractRange(str, Enum):
     SBK = "SBK"
     SNK = "SNK"
     ALL = "ALL"
+
+
+class MarketType(str, Enum):
+    Equity = "EQUITY"
+    Option = "OPTION"
+    Future = "FUTURE"
+    Bond = "BOND"
+    Forex = "FOREX"
+    FutureOption = "FUTURE_OPTION"
+    Index = "INDEX"
+    MutualFund = "MUTUAL_FUND"
+
+
+class MarketHours(JSONSerializableBaseModel):
+    start: datetime
+    end: datetime
+
+
+class SessionHours(JSONSerializableBaseModel):
+    preMarket: Optional[List[MarketHours]] = None
+    regularMarket: List[MarketHours]
+    postMarket: Optional[List[MarketHours]] = None
+
+
+class Market(JSONSerializableBaseModel):
+    date: date
+    marketType: MarketType
+    exchange: Optional[str] = None
+    category: Optional[str] = None
+    product: str
+    productName: str
+    isOpen: bool
+    sessionHours: SessionHours
+
+
+class EquityMarket(JSONSerializableBaseModel):
+    EQ: Market
+
+
+class OptionMarket(JSONSerializableBaseModel):
+    EQO: Market
+    IND: Market
+
+
+class MarketHourInfo(JSONSerializableBaseModel):
+    equity: Optional[EquityMarket] = None
+    option: Optional[OptionMarket] = None
+
+    @property
+    def is_equity_market_open(self) -> Optional[bool]:
+        if self.equity is None:
+            return None
+
+        return self.equity.EQ.isOpen
+
+    @property
+    def is_option_market_open(self) -> Optional[bool]:
+        if self.option is None:
+            return None
+
+        return self.option.EQO.isOpen or self.option.IND.isOpen
 
 
 class OptionChainQueryFilter(QueryFilterBase):
