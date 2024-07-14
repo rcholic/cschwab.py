@@ -86,7 +86,7 @@ class SchwabAsyncClient(object):
             if response.status_code == 200:
                 json_res = response.json()
                 tokens = Tokens(**json_res)
-                self.__token_store.save_tokens(tokens)
+                await self.__token_store.save_tokens(tokens)
                 return True
             else:
                 raise Exception(
@@ -385,63 +385,3 @@ class SchwabAsyncClient(object):
         finally:
             if not self.__keep_client_alive:
                 await client.aclose()
-
-    def get_tokens_manually(
-        self,
-    ) -> None:
-        """Manual steps to get tokens from Charles Schwab API."""
-        from prompt_toolkit import prompt
-        import urllib.parse as url_parser
-
-        redirect_uri = prompt("Enter your redirect uri> ").strip()
-        complete_auth_url = f"{SCHWAB_API_BASE_URL}/{SCHWAB_AUTH_PATH}?response_type=code&client_id={self.__client_id}&redirect_uri={redirect_uri}"
-        print(
-            f"Copy and open the following URL in browser. Complete Login & Authorization:\n {complete_auth_url}"
-        )
-        auth_code_response_url = prompt(
-            "Paste the entire authorization response URL here> "
-        ).strip()
-
-        auth_code = ""
-        try:
-            auth_code_pattern = re.compile(r"code=(.+)&?")
-            d = re.search(auth_code_pattern, auth_code_response_url)
-            if d:
-                auth_code = d.group(1)
-                auth_code = url_parser.unquote(auth_code.split("&")[0])
-            else:
-                raise Exception(
-                    "authorization response url does not contain authorization code"
-                )
-
-            if len(auth_code) == 0:
-                raise Exception("authorization code is empty")
-        except Exception as ex:
-            raise Exception(
-                "Failed to get authorization code. Please try again. Exception: ", ex
-            )
-
-        key_sec_encoded = self.__encode_app_key_secret()
-        with httpx.Client() as client:
-            response = client.post(
-                url=self.token_url,
-                headers={
-                    "Authorization": f"Basic {key_sec_encoded}",
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                data={
-                    "grant_type": "authorization_code",
-                    "code": auth_code,
-                    "redirect_uri": redirect_uri,
-                },
-            )
-
-            if response.status_code == 200:
-                json_res = response.json()
-                tokens = Tokens(**json_res)
-                self.__token_store.save_tokens(tokens)
-                print(
-                    f"Tokens saved successfully at path: {self.__token_store.token_file_path}"
-                )
-            else:
-                print("Failed to get tokens. Please try again.")

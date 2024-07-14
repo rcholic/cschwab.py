@@ -30,12 +30,13 @@ pip install CSchwabPy
 ```python
 
 # save these lines in a file named like cschwab.py
-from cschwabpy.SchwabAsyncClient import SchwabAsyncClient
+# NOTE: should use SchwabClient to get tokens manually after version 0.1.3
+from cschwabpy.SchwabClient import SchwabClient
 
 app_client_key = "---your-app-client-key-here-"
 app_secret = "app-secret"
 
-schwab_client = SchwabAsyncClient(app_client_id=app_client_key, app_secret=app_secret)
+schwab_client = SchwabClient(app_client_id=app_client_key, app_secret=app_secret)
 schwab_client.get_tokens_manually()
 
 # run in your Terminal, follow the prompt to complete authentication:
@@ -47,13 +48,13 @@ schwab_client.get_tokens_manually()
 #----------------
 ticker = '$SPX'
 # get option expirations:
-expiration_list = await schwab_client.get_option_expirations_async(underlying_symbol = ticker)
+expiration_list = schwab_client.get_option_expirations(underlying_symbol = ticker)
 
 # download SPX option chains
 from_date = 2024-07-01
 to_date = 2024-07-01
 
-opt_chain_result = await schwab_client.download_option_chain_async(ticker, from_date, to_date)
+opt_chain_result = schwab_client.download_option_chain(ticker, from_date, to_date)
 
 # get call-put dataframe pairs by expiration
 opt_df_pairs = opt_chain_result.to_dataframe_pairs_by_expiration()
