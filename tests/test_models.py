@@ -203,6 +203,7 @@ async def test_get_order(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
 
@@ -286,6 +287,7 @@ async def test_place_order(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
 
@@ -323,6 +325,7 @@ async def test_cancel_order(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
 
@@ -365,6 +368,7 @@ async def test_get_order_by_id(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
 
@@ -409,6 +413,7 @@ async def test_get_single_account(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
         single_account2 = cschwab_client2.get_single_account(
@@ -457,6 +462,7 @@ async def test_get_securities_account(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
         securities_accounts2 = cschwab_client2.get_accounts(include_positions=True)
@@ -515,6 +521,7 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
         opt_chain_result2 = cschwab_client2.download_option_chain(
@@ -572,6 +579,7 @@ async def test_get_option_expirations(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
         opt_expirations_list2 = cschwab_client2.get_option_expirations(
@@ -624,6 +632,7 @@ async def test_get_account_numbers(httpx_mock: HTTPXMock):
             app_client_id="fake_id",
             app_secret="fake_secret",
             token_store=token_store,
+            tokens=mocked_token,
             http_client=client2,
         )
         account_numbers2 = cschwab_client2.get_account_numbers()
