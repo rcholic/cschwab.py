@@ -18,7 +18,7 @@ from cschwabpy.models.trade_models import (
     InstrumentProjection,
 )
 import cschwabpy.util as util
-
+import backoff
 from datetime import datetime, timedelta
 from typing import Optional, List, Mapping
 from cschwabpy.costants import (
@@ -66,6 +66,7 @@ class SchwabClient(object):
     def token_url(self) -> str:
         return f"{SCHWAB_API_BASE_URL}/{SCHWAB_TOKEN_PATH}"
 
+    @backoff.on_exception(backoff.expo, Exception, max_tries=3, max_time=10)
     def _ensure_valid_access_token(self, force_refresh: bool = False) -> bool:
         if self.__tokens is None:
             raise Exception(

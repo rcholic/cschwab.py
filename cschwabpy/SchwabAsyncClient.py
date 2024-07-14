@@ -28,7 +28,7 @@ from cschwabpy.costants import (
     SCHWAB_AUTH_PATH,
     SCHWAB_TOKEN_PATH,
 )
-
+import backoff
 import httpx
 import re
 import base64
@@ -64,15 +64,14 @@ class SchwabAsyncClient(object):
     def token_url(self) -> str:
         return f"{SCHWAB_API_BASE_URL}/{SCHWAB_TOKEN_PATH}"
 
+    @backoff.on_exception(backoff.expo, Exception, max_tries=3, max_time=10)
     async def _ensure_valid_access_token(self, force_refresh: bool = False) -> bool:
         if self.__tokens is None:
             raise Exception(
                 "Tokens are not available. Please use get_tokens_manually() to get tokens first."
             )
-
         if self.__tokens.is_access_token_valid and not force_refresh:
             return True
-
         client = httpx.AsyncClient() if self.__client is None else self.__client
         try:
             key_sec_encoded = self.__encode_app_key_secret()
