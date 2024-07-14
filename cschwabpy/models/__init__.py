@@ -1,5 +1,5 @@
 """models folder."""
-from datetime import datetime
+from datetime import datetime, date
 from dataclasses import dataclass
 from pydantic import BaseModel, ConfigDict, Field
 from typing import MutableMapping, Mapping, MutableSet, Any, List, Optional
@@ -155,6 +155,50 @@ class OptionContractRange(str, Enum):
     SBK = "SBK"
     SNK = "SNK"
     ALL = "ALL"
+
+
+class MarketType(str, Enum):
+    Equity = "EQUITY"
+    Option = "OPTION"
+    Future = "FUTURE"
+    Bond = "BOND"
+    Forex = "FOREX"
+
+
+class MarketHours(JSONSerializableBaseModel):
+    start: datetime
+    end: datetime
+
+
+class SessionHours(JSONSerializableBaseModel):
+    preMarket: Optional[List[MarketHours]] = None
+    regularMarket: List[MarketHours]
+    postMarket: Optional[List[MarketHours]] = None
+
+
+class Market(JSONSerializableBaseModel):
+    date: date
+    marketType: MarketType
+    exchange: Optional[str] = None
+    category: Optional[str] = None
+    product: str
+    productName: str
+    isOpen: bool
+    sessionHours: SessionHours
+
+
+class EquityMarket(JSONSerializableBaseModel):
+    EQ: Market
+
+
+class OptionMarket(JSONSerializableBaseModel):
+    EQO: Market
+    IND: Market
+
+
+class AllMarket(JSONSerializableBaseModel):
+    equity: EquityMarket
+    option: OptionMarket
 
 
 class OptionChainQueryFilter(QueryFilterBase):

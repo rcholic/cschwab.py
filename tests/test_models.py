@@ -11,6 +11,10 @@ from cschwabpy.models import (
     OptionContract,
     OptionContractType,
     OptionContractStrategy,
+    MarketHours,
+    AllMarket,
+    OptionMarket,
+    EquityMarket,
 )
 from cschwabpy.models.trade_models import (
     AccountNumberWithHashID,
@@ -61,6 +65,26 @@ def get_mock_response(
         if mocked_token is not None:
             json_dict = {**json_dict, **(mocked_token.to_json())}
         return json_dict
+
+
+def test_market_hours() -> None:
+    market_hours_json = {
+        "start": "2022-04-14T09:30:00-04:00",
+        "end": "2022-04-14T16:00:00-04:00",
+    }
+    market_hour = MarketHours(**market_hours_json)
+    assert market_hour is not None
+    assert market_hour.start.year == 2022
+    assert market_hour.start.month == 4
+    assert market_hour.start.day == 14
+
+    all_market_json = get_mock_response()["all_market_resp"]
+    print("all_market_json: ", all_market_json)
+    all_market = AllMarket(**all_market_json)
+    assert all_market is not None
+    assert all_market.equity is not None
+    assert all_market.equity.EQ.sessionHours.regularMarket is not None
+    assert all_market.equity.EQ.sessionHours.preMarket is not None
 
 
 def test_option_chain_parsing() -> None:
