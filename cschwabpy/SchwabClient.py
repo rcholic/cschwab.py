@@ -53,14 +53,7 @@ class SchwabClient(object):
         self.__token_store = token_store
         self.__client = http_client
         self.__keep_client_alive = http_client is not None
-        if (
-            tokens is not None
-            and tokens.is_access_token_valid
-            and tokens.is_refresh_token_valid
-        ):
-            token_store.save_tokens(tokens)
-
-        self.__tokens = token_store.get_tokens()
+        self.__tokens = tokens
 
     @property
     def token_url(self) -> str:
@@ -68,6 +61,8 @@ class SchwabClient(object):
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=3, max_time=10)
     def _ensure_valid_access_token(self, force_refresh: bool = False) -> bool:
+        if self.__tokens is None:
+            self.__tokens = self.__token_store.get_tokens()
         if self.__tokens is None:
             raise Exception(
                 "Tokens are not available. Please use get_tokens_manually() to get tokens first."

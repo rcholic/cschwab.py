@@ -4,6 +4,7 @@ from typing import Mapping, Any, Protocol, Optional
 import os
 import json
 import time
+import aiofiles as af
 from pathlib import Path
 
 REFRESH_TOKEN_VALIDITY_SECONDS = 7 * 24 * 60 * 60  # 7 days
@@ -77,3 +78,48 @@ class LocalTokenStore(ITokenStore):
     def save_tokens(self, tokens: Tokens) -> None:
         with open(self.token_file_path, "w") as token_file:
             token_file.write(json.dumps(tokens.to_json(), indent=4))
+
+
+class IAsyncTokenStore(Protocol):
+    @property
+    def token_output_path(self) -> str:
+        """Path for outputting tokens."""
+        return ""
+
+    async def get_tokens(self) -> Optional[Tokens]:
+        pass
+
+    async def save_tokens(self, tokens: Tokens) -> None:
+        pass
+
+
+class AsyncLocalTokenStore(IAsyncTokenStore):
+    def __init__(
+        self, json_file_name: str = "tokens.json", file_path: Optional[str] = None
+    ):
+        self.file_name = json_file_name
+        self.token_file_path = file_path
+        if file_path is None:
+            self.token_file_path = Path(Path(__file__).parent, json_file_name)
+        else:
+            self.token_file_path = Path(file_path)
+
+        if not os.path.exists(self.token_file_path.parent):
+            os.makedirs(self.token_file_path.parent)
+
+    @property
+    def token_output_path(self) -> str:
+        return str(self.token_file_path)
+
+    async def get_tokens(self) -> Optional[Tokens]:
+        try:
+            async with af.open(self.token_file_path, mode="r") as token_file:
+                token_json_str = await token_file.read()
+                tokens_json = json.loads(token_json_str)
+                return Tokens(**tokens_json)
+        except:
+            return None
+
+    async def save_tokens(self, tokens: Tokens) -> None:
+        async with af.open(self.token_file_path, mode="w") as token_file:
+            await token_file.write(json.dumps(tokens.to_json(), indent=4))

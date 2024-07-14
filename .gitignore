@@ -145,4 +145,4 @@ cython_debug/
 notebooks
 *.log
 data-logs/
-*tokens.json
+*tokens*.json
