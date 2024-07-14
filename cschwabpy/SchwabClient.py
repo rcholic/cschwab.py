@@ -381,8 +381,13 @@ class SchwabClient(object):
             response = client.get(
                 url=target_url, params={}, headers=self.__auth_header()
             )
-            json_res = response.json()
-            return OptionChain(**json_res)
+            if response.status_code == 200:
+                json_res = response.json()
+                return OptionChain(**json_res)
+            else:
+                raise Exception(
+                    "Failed to download option chain. Status: ", response.status_code
+                )
         finally:
             if not self.__keep_client_alive:
                 client.close()
