@@ -88,8 +88,8 @@ class SchwabClient(object):
 
             if response.status_code == 200:
                 json_res = response.json()
-                tokens = Tokens(**json_res)
-                self.__token_store.save_tokens(tokens)
+                self.__tokens = Tokens(**json_res)
+                self.__token_store.save_tokens(self.__tokens)
                 return True
             else:
                 raise Exception(
