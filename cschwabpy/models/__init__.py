@@ -56,6 +56,10 @@ class JSONSerializableBaseModel(BaseModel):
             for itm in set(item):
                 result.add(self.__handle_item(itm))
             return result
+        elif isinstance(item, Enum):
+            return item.value
+        elif isinstance(item, datetime):
+            return str(item)  # because datetime object is not JSON serializable
         else:
             return item
 

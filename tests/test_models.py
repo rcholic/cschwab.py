@@ -80,6 +80,12 @@ async def test_market_hours(httpx_mock: HTTPXMock) -> None:
     assert market_hour.start.month == 4
     assert market_hour.start.day == 14
 
+    market_hours_json2 = market_hour.to_json()
+    print("market_hours_json2: ", market_hours_json2)
+    restored_mareket_hours2 = MarketHours(**market_hours_json2)
+    assert restored_mareket_hours2 is not None
+    assert restored_mareket_hours2.start.year == 2022
+
     all_market_json = get_mock_response()["all_market_resp"]
 
     all_market = MarketHourInfo(**all_market_json)
