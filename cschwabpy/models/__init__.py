@@ -1,11 +1,15 @@
 """models folder."""
 from datetime import datetime, date
+from dateutil import parser
 from dataclasses import dataclass
 from pydantic import BaseModel, ConfigDict, Field
-from typing import MutableMapping, Mapping, MutableSet, Any, List, Optional
+from typing import MutableMapping, Mapping, MutableSet, Any, List, Tuple, Optional
 from enum import Enum
 import cschwabpy.util as util
 import pandas as pd
+import pytz
+
+us_eastern_timezone = pytz.timezone("US/Eastern")
 
 OptionChain_Headers = [
     "underlying_price",
@@ -58,8 +62,8 @@ class JSONSerializableBaseModel(BaseModel):
             return result
         elif isinstance(item, Enum):
             return item.value
-        elif isinstance(item, datetime):
-            return str(item)  # because datetime object is not JSON serializable
+        elif isinstance(item, datetime) or isinstance(item, date):
+            return str(item)  # because datetime/date object is not JSON serializable
         else:
             return item
 
@@ -173,8 +177,16 @@ class MarketType(str, Enum):
 
 
 class MarketHours(JSONSerializableBaseModel):
-    start: datetime
-    end: datetime
+    start: str
+    end: str
+
+    def open_window(
+        self, timezone: pytz.BaseTzInfo = us_eastern_timezone
+    ) -> Tuple[datetime, datetime]:
+        """Returns the market open window (tuple) in datetime format, defaulted to US eastern timezone.."""
+        start_time = parser.parse(self.start).astimezone(timezone)
+        end_time = parser.parse(self.end).astimezone(timezone)
+        return start_time, end_time
 
 
 class SessionHours(JSONSerializableBaseModel):
