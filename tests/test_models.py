@@ -11,8 +11,10 @@ from cschwabpy.models import (
     OptionContract,
     OptionContractType,
     OptionContractStrategy,
+    Market,
     MarketHours,
     MarketHourInfo,
+    MarketType,
     OptionMarket,
     EquityMarket,
 )
@@ -76,9 +78,19 @@ async def test_market_hours(httpx_mock: HTTPXMock) -> None:
     }
     market_hour = MarketHours(**market_hours_json)
     assert market_hour is not None
-    assert market_hour.start.year == 2022
-    assert market_hour.start.month == 4
-    assert market_hour.start.day == 14
+    start_time, end_time = market_hour.open_window()
+    assert start_time.year == 2022
+    assert start_time.month == 4
+    assert start_time.day == 14
+    assert end_time.day == 14
+
+    market_hours_json2 = market_hour.to_json()
+    print("market_hours_json2: ", market_hours_json2)
+    restored_mareket_hours2 = MarketHours(**market_hours_json2)
+    assert restored_mareket_hours2 is not None
+    start_time2, end_time2 = restored_mareket_hours2.open_window()
+    assert start_time2.year == 2022
+    assert end_time2.hour == 16
 
     all_market_json = get_mock_response()["all_market_resp"]
 
@@ -87,6 +99,14 @@ async def test_market_hours(httpx_mock: HTTPXMock) -> None:
     assert all_market.equity is not None
     assert all_market.equity.EQ.sessionHours.regularMarket is not None
     assert all_market.equity.EQ.sessionHours.preMarket is not None
+
+    equity_market = all_market.equity.EQ
+    assert equity_market.marketType == MarketType.Equity
+    equity_market_json = equity_market.to_json()
+    print("equity_market_json: ", equity_market_json)
+    restored_equity_market = Market(**equity_market_json)
+    assert restored_equity_market is not None
+    assert restored_equity_market.isOpen
 
     mocked_token = mock_tokens()
     mock_response = {
