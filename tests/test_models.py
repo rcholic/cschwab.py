@@ -97,6 +97,7 @@ async def test_market_hours(httpx_mock: HTTPXMock) -> None:
     all_market = MarketHourInfo(**all_market_json)
     assert all_market is not None
     assert all_market.equity is not None
+    assert all_market.equity.EQ.sessionHours is not None
     assert all_market.equity.EQ.sessionHours.regularMarket is not None
     assert all_market.equity.EQ.sessionHours.preMarket is not None
 

@@ -203,7 +203,7 @@ class Market(JSONSerializableBaseModel):
     product: str
     productName: str
     isOpen: bool
-    sessionHours: SessionHours
+    sessionHours: Optional[SessionHours] = None
 
 
 class EquityMarket(JSONSerializableBaseModel):
