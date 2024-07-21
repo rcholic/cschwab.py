@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cschwabpy"
-version = "0.1.3.7"
+version = "0.1.3.8"
 description = ""
 authors = ["Tony Wang <ivytony@gmail.com>"]
 readme = "README.md"

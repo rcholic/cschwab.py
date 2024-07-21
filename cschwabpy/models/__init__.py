@@ -207,12 +207,12 @@ class Market(JSONSerializableBaseModel):
 
 
 class EquityMarket(JSONSerializableBaseModel):
-    EQ: Market
+    EQ: Optional[Market] = None
 
 
 class OptionMarket(JSONSerializableBaseModel):
-    EQO: Market
-    IND: Market
+    EQO: Optional[Market] = None
+    IND: Optional[Market] = None
 
 
 class MarketHourInfo(JSONSerializableBaseModel):
@@ -220,18 +220,29 @@ class MarketHourInfo(JSONSerializableBaseModel):
     option: Optional[OptionMarket] = None
 
     @property
-    def is_equity_market_open(self) -> Optional[bool]:
-        if self.equity is None:
-            return None
+    def is_equity_market_open(self) -> bool:
+        if self.equity is None or self.equity.EQ is None:
+            return False
 
         return self.equity.EQ.isOpen
 
     @property
-    def is_option_market_open(self) -> Optional[bool]:
+    def is_option_market_open(self) -> bool:
         if self.option is None:
-            return None
+            return False
 
         return self.option.EQO.isOpen or self.option.IND.isOpen
+
+    @property
+    def equity_regular_market_hours(self) -> List[MarketHours]:
+        if (
+            self.equity is None
+            or self.equity.EQ is None
+            or self.equity.EQ.sessionHours is None
+        ):
+            return []
+
+        return self.equity.EQ.sessionHours.regularMarket
 
 
 class OptionChainQueryFilter(QueryFilterBase):
