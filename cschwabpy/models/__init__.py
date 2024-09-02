@@ -319,7 +319,7 @@ class OptionContract(JSONSerializableBaseModel):
             self.expirationDate,
             util.ts_to_date_string(self.quoteTimeInLong),
             self.totalVolume,
-            util.ts_to_date_string(self.quoteTimeInLong),
+            self.quoteTimeInLong,  # updated_at
             self.gamma,
             self.delta,
             self.vega,
@@ -417,6 +417,7 @@ class OptionChain(JSONSerializableBaseModel):
         strip_space: bool = False,
     ) -> Mapping[str, pd.DataFrame]:
         """Whether strip spaces in option symbols."""
+        now_unix_ts = int(util.now_unix_ts())
         result: MutableMapping[str, pd.DataFrame] = {}
         for exp_date, strike_map in optionExpMap.items():
             expiration = exp_date.split(":")[0]
@@ -434,6 +435,8 @@ class OptionChain(JSONSerializableBaseModel):
 
                 strike_df = pd.DataFrame(all_rows)
                 strike_df.columns = OptionChain_Headers
+                # change updated_at to now_unix_ts
+                strike_df["updated_at"] = now_unix_ts
             result[expiration] = strike_df
 
         return result
