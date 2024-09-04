@@ -318,10 +318,10 @@ class AccountOption(AccountInstrument):
 
 
 class OrderLeg(JSONSerializableBaseModel):
-    askPrice: Optional[float] = None
-    bidPrice: Optional[float] = None
-    lastPrice: Optional[float] = None
-    marketPrice: Optional[float] = None
+    ask: Optional[float] = None
+    bid: Optional[float] = None
+    last: Optional[float] = None
+    market: Optional[float] = None
     projectedCommission: Optional[float] = None
     quantity: Optional[float] = None
     finalSymbol: Optional[str] = None

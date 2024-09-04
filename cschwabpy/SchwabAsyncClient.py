@@ -381,6 +381,7 @@ class SchwabAsyncClient(object):
             )
             if response.status_code == 200:
                 json_res = response.json()
+                print("json_res", json.dumps(json_res, indent=4))
                 return OptionChain(**json_res)
             else:
                 raise Exception(
