@@ -328,13 +328,13 @@ class OptionContract(JSONSerializableBaseModel):
 
 
 class Underlying(JSONSerializableBaseModel):
-    ask: float
-    askSize: int
-    bid: float
-    bidSize: int
-    close_: float = Field(..., alias="close")
+    ask: Optional[float] = None
+    askSize: Optional[int] = None
+    bid: Optional[float] = None
+    bidSize: Optional[int] = None
+    close_: Optional[float] = Field(None, alias="close")
     description: Optional[str] = None
-    exchangeName: str
+    exchangeName: Optional[str] = None
     highPrice: Optional[float] = None
     last: Optional[float] = None
     lowPrice: Optional[float] = None
