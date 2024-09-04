@@ -265,10 +265,10 @@ class OptionContract(JSONSerializableBaseModel):
     symbol: str
     description: str
     exchangeName: str
-    bidPrice: Optional[float] = None
-    askPrice: Optional[float] = None
-    lastPrice: Optional[float] = None
-    markPrice: Optional[float] = None
+    bid: Optional[float] = None
+    ask: Optional[float] = None
+    last: Optional[float] = None
+    mark: Optional[float] = None
     bidSize: Optional[int] = None
     askSize: Optional[int] = None
     lastSize: Optional[int] = None
@@ -277,9 +277,8 @@ class OptionContract(JSONSerializableBaseModel):
     openPrice: Optional[float] = None
     closePrice: Optional[float] = None
     totalVolume: Optional[int] = None
-    tradeDate: Optional[int] = None
-    quoteTimeInLong: Optional[int]
     tradeTimeInLong: Optional[int] = None
+    quoteTimeInLong: Optional[int]
     netChange: Optional[float] = None
     volatility: Optional[float] = None
     delta: Optional[float] = None
@@ -292,7 +291,7 @@ class OptionContract(JSONSerializableBaseModel):
     theoreticalOptionValue: Optional[float] = None
     theoreticalVolatility: Optional[float] = None
     strikePrice: float
-    expirationDate: str
+    expirationDate: str  # TODO: change to datetime
     daysToExpiration: int
     expirationType: str  # M for end of month, W for week, Q for quarter, S for third friday
     lastTradingDay: Optional[int] = None
@@ -312,10 +311,10 @@ class OptionContract(JSONSerializableBaseModel):
         result: List[Any] = [
             self.strikePrice,
             symbol,
-            self.lastPrice,
+            self.last,
             self.openInterest,
-            self.askPrice,
-            self.bidPrice,
+            self.ask,
+            self.bid,
             self.expirationDate,
             util.ts_to_date_string(self.quoteTimeInLong),
             self.totalVolume,
@@ -337,14 +336,14 @@ class Underlying(JSONSerializableBaseModel):
     description: Optional[str] = None
     exchangeName: str
     highPrice: Optional[float] = None
-    lastPrice: Optional[float] = None
+    last: Optional[float] = None
     lowPrice: Optional[float] = None
     mark: Optional[float] = None
     markChange: Optional[float] = None
     markPercentChange: Optional[float] = None
     openPrice: Optional[float] = None
-    percentChange: float
-    quoteTime: int
+    percentChange: Optional[float] = None
+    quoteTime: Optional[int] = None
     symbol: str
     totalVolume: Optional[int] = None
     tradeTime: Optional[int] = None
