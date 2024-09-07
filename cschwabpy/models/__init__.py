@@ -315,8 +315,8 @@ class OptionContract(JSONSerializableBaseModel):
             self.openInterest,
             self.ask,
             self.bid,
-            self.expirationDate,
-            util.ts_to_date_string(self.quoteTimeInLong),
+            self.expirationDate[: self.expirationDate.index("T")],
+            util.ts_to_datetime(self.quoteTimeInLong),
             self.totalVolume,
             self.quoteTimeInLong,  # updated_at
             self.gamma,
