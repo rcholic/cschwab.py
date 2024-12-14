@@ -116,7 +116,7 @@ async def test_market_hours(httpx_mock: HTTPXMock) -> None:
         **all_market_json,
         **(mocked_token.to_json()),
     }
-    httpx_mock.add_response(json=mock_response)
+    httpx_mock.add_response(json=mock_response, is_reusable=True)
     async with httpx.AsyncClient() as client:
         cschwab_client = SchwabAsyncClient(
             app_client_id="fake_id",
@@ -202,7 +202,7 @@ async def test_get_order(httpx_mock: HTTPXMock):
         os.remove(token_store.token_output_path)  # clean up before test
 
     token_store.save_tokens(mocked_token)
-    httpx_mock.add_response(json=[json_mock])  # make it array type
+    httpx_mock.add_response(json=[json_mock], is_reusable=True)  # make it array type
     from_entered_time = datetime.now() - timedelta(hours=3)
     to_entered_time = datetime.now()
     async with httpx.AsyncClient() as client:
@@ -295,7 +295,7 @@ async def test_place_order(httpx_mock: HTTPXMock):
         f"https://api.schwabapi.com/trader/v1/accounts/HASHHERE/orders/{order_id}"
     )
     headers = {"Location": location_url}
-    httpx_mock.add_response(headers=headers, status_code=201)
+    httpx_mock.add_response(headers=headers, status_code=201, is_reusable=True)
     async with httpx.AsyncClient() as client:
         cschwab_client = SchwabAsyncClient(
             app_client_id="fake_id",
@@ -334,7 +334,7 @@ async def test_cancel_order(httpx_mock: HTTPXMock):
 
     order_id = 1000847830245
     token_store.save_tokens(mocked_token)
-    httpx_mock.add_response(status_code=200)
+    httpx_mock.add_response(status_code=200, is_reusable=True)
     async with httpx.AsyncClient() as client:
         cschwab_client = SchwabAsyncClient(
             app_client_id="fake_id",
@@ -374,7 +374,7 @@ async def test_get_order_by_id(httpx_mock: HTTPXMock):
         os.remove(token_store.token_output_path)  # clean up before test
 
     token_store.save_tokens(mocked_token)
-    httpx_mock.add_response(json=json_mock)  # make it array type
+    httpx_mock.add_response(json=json_mock, is_reusable=True)  # make it array type
     order_id = 1000847830245
 
     async with httpx.AsyncClient() as client:
@@ -420,7 +420,7 @@ async def test_get_single_account(httpx_mock: HTTPXMock):
 
     token_store.save_tokens(mocked_token)
     symbol = "$SPX"
-    httpx_mock.add_response(json=json_mock)
+    httpx_mock.add_response(json=json_mock, is_reusable=True)
     async with httpx.AsyncClient() as client:
         cschwab_client2 = SchwabAsyncClient(
             app_client_id="fake_id",
@@ -467,7 +467,7 @@ async def test_get_securities_account(httpx_mock: HTTPXMock):
 
     token_store.save_tokens(mocked_token)
     symbol = "$SPX"
-    httpx_mock.add_response(json=json_mock)
+    httpx_mock.add_response(json=json_mock, is_reusable=True)
     async with httpx.AsyncClient() as client:
         cschwab_client = SchwabAsyncClient(
             app_client_id="fake_id",
@@ -522,7 +522,7 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
         **(mocked_token.to_json()),
     }
     symbol = "$SPX"
-    httpx_mock.add_response(json=mock_response)
+    httpx_mock.add_response(json=mock_response, is_reusable=True)
     async with httpx.AsyncClient() as client:
         cschwab_client = SchwabAsyncClient(
             app_client_id="fake_id",
@@ -592,7 +592,7 @@ async def test_get_option_expirations(httpx_mock: HTTPXMock):
         **(mocked_token.to_json()),
     }
     symbol = "$SPX"
-    httpx_mock.add_response(json=mock_response)
+    httpx_mock.add_response(json=mock_response, is_reusable=True)
     async with httpx.AsyncClient() as client:
         cschwab_client = SchwabAsyncClient(
             app_client_id="fake_id",
@@ -643,7 +643,7 @@ async def test_get_account_numbers(httpx_mock: HTTPXMock):
 
     mock_account_numbers_response = mock_data["account_numbers"]
     # Combine mock response with token JSON
-    httpx_mock.add_response(json=mock_account_numbers_response)
+    httpx_mock.add_response(json=mock_account_numbers_response, is_reusable=True)
 
     async with httpx.AsyncClient() as client:
         cschwab_client = SchwabAsyncClient(
