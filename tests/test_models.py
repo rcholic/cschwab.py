@@ -153,7 +153,9 @@ def test_option_chain_parsing() -> None:
     assert opt_chain_result is not None
     assert opt_chain_result.status == "SUCCESS"
 
-    opt_df_pairs = opt_chain_result.to_dataframe_pairs_by_expiration()
+    opt_df_pairs = opt_chain_result.to_dataframe_pairs_by_expiration(
+        use_compression=True
+    )
     assert opt_df_pairs is not None
     for df in opt_df_pairs:
         print(df.expiration)
@@ -527,7 +529,9 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
         assert opt_chain_result is not None
         assert opt_chain_result.status == "SUCCESS"
 
-        opt_df_pairs = opt_chain_result.to_dataframe_pairs_by_expiration()
+        opt_df_pairs = opt_chain_result.to_dataframe_pairs_by_expiration(
+            use_compression=True
+        )
         assert opt_df_pairs is not None
         for df in opt_df_pairs:
             print(df.expiration)
@@ -552,7 +556,9 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
         assert opt_chain_result2 is not None
         assert opt_chain_result2.status == "SUCCESS"
 
-        opt_df_pairs = opt_chain_result2.to_dataframe_pairs_by_expiration()
+        opt_df_pairs = opt_chain_result2.to_dataframe_pairs_by_expiration(
+            use_compression=True
+        )
         assert opt_df_pairs is not None
         for df in opt_df_pairs:
             print(df.expiration)

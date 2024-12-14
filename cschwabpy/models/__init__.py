@@ -382,19 +382,24 @@ class OptionChain(JSONSerializableBaseModel):
     ]  # key: expiration:27 value:[strike: OptionContract]
 
     def to_dataframe_pairs_by_expiration(
-        self, strip_space: bool = False
+        self, strip_space: bool = False, use_compression: bool = False
     ) -> List[OptionChainDataFrames]:
         """
         List of OptionChainDataFrames by expiration.
         Each OptionChainDataFrames object contains call and put chain in dataframe format.
         @param strip_space: Whether strip spaces in option symbols.
+        @param use_compress: Whether to compress the data frame to bare minimum data types.
         """
         results: List[OptionChainDataFrames] = []
         call_map = self.break_down_option_map(
-            self.callExpDateMap, strip_space=strip_space
+            self.callExpDateMap,
+            strip_space=strip_space,
+            should_compress=use_compression,
         )
         put_map = self.break_down_option_map(
-            self.putExpDateMap, strip_space=strip_space
+            self.putExpDateMap,
+            strip_space=strip_space,
+            should_compress=use_compression,
         )
         for expiration in call_map.keys():
             call_df = call_map[expiration]
@@ -414,8 +419,13 @@ class OptionChain(JSONSerializableBaseModel):
         self,
         optionExpMap: Mapping[str, Mapping[str, List[OptionContract]]],
         strip_space: bool = False,
+        should_compress: bool = False,
     ) -> Mapping[str, pd.DataFrame]:
-        """Whether strip spaces in option symbols."""
+        """
+        Whether strip spaces in option symbols.
+        if should_compress is True, cast the data types
+        to bare minimum to save memory usage.
+        """
         now_unix_ts = int(util.now_unix_ts())
         result: MutableMapping[str, pd.DataFrame] = {}
         for exp_date, strike_map in optionExpMap.items():
@@ -426,7 +436,6 @@ class OptionChain(JSONSerializableBaseModel):
             all_rows = []
             strike_df = pd.DataFrame()
             for strike_str, option_contracts in strike_map.items():
-                strike = float(strike_str)
                 for option_contract in option_contracts:
                     row = option_contract.to_dataframe_row(strip_space=strip_space)
                     row.insert(0, self.underlying.mark)
@@ -436,6 +445,25 @@ class OptionChain(JSONSerializableBaseModel):
                 strike_df.columns = OptionChain_Headers
                 # change updated_at to now_unix_ts
                 strike_df["updated_at"] = now_unix_ts
+
+            if should_compress:
+                strike_df = strike_df.astype(
+                    {
+                        "underlying_price": "float16",
+                        "strike": "float16",
+                        "lastPrice": "float16",
+                        "openInterest": "int32",
+                        "volume": "int32",
+                        "ask": "float16",
+                        "bid": "float16",
+                        "lastPrice": "float16",
+                        "gamma": "float16",
+                        "delta": "float16",
+                        "vega": "float16",
+                        "volatility": "float16",
+                    }
+                )
+
             result[expiration] = strike_df
 
         return result
