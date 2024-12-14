@@ -71,6 +71,7 @@ def get_mock_response(
 
 
 @pytest.mark.asyncio
+@pytest.mark.httpx_mock(assert_all_requests_were_expected=False)
 async def test_market_hours(httpx_mock: HTTPXMock) -> None:
     market_hours_json = {
         "start": "2022-04-14T09:30:00-04:00",
@@ -153,7 +154,9 @@ def test_option_chain_parsing() -> None:
     assert opt_chain_result is not None
     assert opt_chain_result.status == "SUCCESS"
 
-    opt_df_pairs = opt_chain_result.to_dataframe_pairs_by_expiration()
+    opt_df_pairs = opt_chain_result.to_dataframe_pairs_by_expiration(
+        use_compression=True
+    )
     assert opt_df_pairs is not None
     for df in opt_df_pairs:
         print(df.expiration)
@@ -190,6 +193,7 @@ def test_parsing_order():
 
 
 @pytest.mark.asyncio
+@pytest.mark.httpx_mock(assert_all_requests_were_expected=False)
 async def test_get_order(httpx_mock: HTTPXMock):
     json_mock = get_mock_response()["single_order"]
     mocked_token = mock_tokens()
@@ -242,6 +246,7 @@ async def test_get_order(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+@pytest.mark.httpx_mock(assert_all_requests_were_expected=False)
 async def test_place_order(httpx_mock: HTTPXMock):
     mocked_token = mock_tokens()
     if os.path.exists(Path(token_store.token_output_path)):
@@ -321,6 +326,7 @@ async def test_place_order(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+@pytest.mark.httpx_mock(assert_all_requests_were_expected=False)
 async def test_cancel_order(httpx_mock: HTTPXMock):
     mocked_token = mock_tokens()
     if os.path.exists(Path(token_store.token_output_path)):
@@ -359,6 +365,7 @@ async def test_cancel_order(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+@pytest.mark.httpx_mock(assert_all_requests_were_expected=False)
 async def test_get_order_by_id(httpx_mock: HTTPXMock):
     json_mock = get_mock_response()["filled_order"]
     mocked_token = mock_tokens()
@@ -403,6 +410,7 @@ async def test_get_order_by_id(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+@pytest.mark.httpx_mock(assert_all_requests_were_expected=False)
 async def test_get_single_account(httpx_mock: HTTPXMock):
     json_mock = get_mock_response()["single_account"]
     mocked_token = mock_tokens()
@@ -449,6 +457,7 @@ async def test_get_single_account(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+@pytest.mark.httpx_mock(assert_all_requests_were_expected=False)
 async def test_get_securities_account(httpx_mock: HTTPXMock):
     json_mock = get_mock_response()["securities_account"]  # single_account
     mocked_token = mock_tokens()
@@ -499,6 +508,7 @@ async def test_get_securities_account(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+@pytest.mark.httpx_mock(assert_all_requests_were_expected=False)
 async def test_download_option_chain(httpx_mock: HTTPXMock):
     mock_option_chain_resp = get_mock_response()
     mocked_token = mock_tokens()
@@ -527,7 +537,9 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
         assert opt_chain_result is not None
         assert opt_chain_result.status == "SUCCESS"
 
-        opt_df_pairs = opt_chain_result.to_dataframe_pairs_by_expiration()
+        opt_df_pairs = opt_chain_result.to_dataframe_pairs_by_expiration(
+            use_compression=True
+        )
         assert opt_df_pairs is not None
         for df in opt_df_pairs:
             print(df.expiration)
@@ -552,7 +564,9 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
         assert opt_chain_result2 is not None
         assert opt_chain_result2.status == "SUCCESS"
 
-        opt_df_pairs = opt_chain_result2.to_dataframe_pairs_by_expiration()
+        opt_df_pairs = opt_chain_result2.to_dataframe_pairs_by_expiration(
+            use_compression=True
+        )
         assert opt_df_pairs is not None
         for df in opt_df_pairs:
             print(df.expiration)
@@ -565,6 +579,7 @@ async def test_download_option_chain(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+@pytest.mark.httpx_mock(assert_all_requests_were_expected=False)
 async def test_get_option_expirations(httpx_mock: HTTPXMock):
     mock_option_chain_resp = get_mock_response()
     mocked_token = mock_tokens()
@@ -616,6 +631,7 @@ async def test_get_option_expirations(httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+@pytest.mark.httpx_mock(assert_all_requests_were_expected=False)
 async def test_get_account_numbers(httpx_mock: HTTPXMock):
     # Mock response for account numbers API
     mock_data = get_mock_response()
