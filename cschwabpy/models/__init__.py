@@ -449,18 +449,18 @@ class OptionChain(JSONSerializableBaseModel):
             if should_compress:
                 strike_df = strike_df.astype(
                     {
-                        "underlying_price": "float16",
-                        "strike": "float16",
-                        "lastPrice": "float16",
+                        "underlying_price": "float32",
+                        "strike": "float32",
+                        "lastPrice": "float32",
                         "openInterest": "int32",
                         "volume": "int32",
-                        "ask": "float16",
-                        "bid": "float16",
-                        "lastPrice": "float16",
-                        "gamma": "float16",
-                        "delta": "float16",
-                        "vega": "float16",
-                        "volatility": "float16",
+                        "ask": "float32",
+                        "bid": "float32",
+                        "lastPrice": "float32",
+                        "gamma": "float32",
+                        "delta": "float32",
+                        "vega": "float32",
+                        "volatility": "float32",
                     }
                 )
 
